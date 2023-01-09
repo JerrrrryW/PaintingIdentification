@@ -16,7 +16,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         # self.resize(500, 500)  # 设定窗口大小(根据自己显示图片的大小，可更改)
 
         self.imgPixmap = QPixmap('input/painting3.jpg')  # 载入图片
-        self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
+        # self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
+        self.scaledImg = self.imgPixmap
         self.singleOffset = QPoint(0, 0)  # 初始化偏移值
 
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
