@@ -30,15 +30,18 @@ class MyWindow(QtWidgets.QMainWindow):
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(self.jpg)
 
-    def ToolBtnClicked(self, clickedBtn: QtWidgets.QToolButton, btnArray):
+    def toolBtnClicked(self, clickedBtn: QtWidgets.QToolButton, btnArray, bondedImageLb: scalableImageLabel):
         # self.floodFillBtn1.setCheckable(True)
         if clickedBtn.isChecked() is True:
             print(clickedBtn.objectName(), "is clicked and checked!")
             for i, btn in enumerate(btnArray):
                 if btn is not clickedBtn:
                     btn.setEnabled(False)
+                else:
+                    bondedImageLb.toolIndex = i
         else:
             print(clickedBtn.objectName(), "is clicked and unchecked!")
+            bondedImageLb.toolIndex = -1
             for i, btn in enumerate(btnArray):
                 if btn is not clickedBtn:
                     btn.setEnabled(True)
@@ -47,21 +50,21 @@ class MyWindow(QtWidgets.QMainWindow):
         self.selectBtn1.clicked.connect(lambda: self.open(self.imageLabel1))
         self.selectBtn2.clicked.connect(lambda: self.open(self.imageLabel2))
         self.floodFillBtn1.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.floodFillBtn1, btnArray=self.btnArray1))
+            lambda: self.toolBtnClicked(self.floodFillBtn1, self.btnArray1, self.imageLabel1))
         self.sqareCutBtn1.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.sqareCutBtn1, btnArray=self.btnArray1))
+            lambda: self.toolBtnClicked(self.sqareCutBtn1, self.btnArray1, self.imageLabel1))
         self.freeCutBtn1.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.freeCutBtn1, btnArray=self.btnArray1))
+            lambda: self.toolBtnClicked(self.freeCutBtn1, self.btnArray1, self.imageLabel1))
         self.sensorBtn1.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.sensorBtn1, btnArray=self.btnArray1))
+            lambda: self.toolBtnClicked(self.sensorBtn1, self.btnArray1, self.imageLabel1))
         self.floodFillBtn2.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.floodFillBtn2, btnArray=self.btnArray2))
+            lambda: self.toolBtnClicked(self.floodFillBtn2, self.btnArray2, self.imageLabel2))
         self.sqareCutBtn2.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.sqareCutBtn2, btnArray=self.btnArray2))
+            lambda: self.toolBtnClicked(self.sqareCutBtn2, self.btnArray2, self.imageLabel2))
         self.freeCutBtn2.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.freeCutBtn2, btnArray=self.btnArray2))
+            lambda: self.toolBtnClicked(self.freeCutBtn2, self.btnArray2, self.imageLabel2))
         self.sensorBtn2.clicked.connect(
-            lambda: self.ToolBtnClicked(clickedBtn=self.sensorBtn2, btnArray=self.btnArray2))
+            lambda: self.toolBtnClicked(self.sensorBtn2, self.btnArray2, self.imageLabel2))
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")

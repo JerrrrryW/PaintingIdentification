@@ -22,6 +22,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
 
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
+        self.toolIndex = -1 # 工具栏调用工具状态，0为当前未调用工具
 
     '''重载绘图: 动态绘图'''
 
@@ -55,8 +56,14 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             print(event.pos())
             col = event.pos().x() - self.singleOffset.x()
             row = event.pos().y() - self.singleOffset.y()
-            if not self.scaledImg.isNull():
+            if self.toolIndex == 0:
                 floodFill(col, row, self.scaledImg)
+            elif self.toolIndex == 1:
+                pass
+            elif self.toolIndex == 2:
+                pass
+            elif self.toolIndex == 3:
+                pass
 
         elif event.buttons() == QtCore.Qt.RightButton:  # 右键按下
             print("鼠标右键单击")  # 响应测试语句

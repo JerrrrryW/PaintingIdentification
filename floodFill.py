@@ -4,8 +4,11 @@ from PyQt5.QtGui import *
 import sys
 
 
-def floodFill(col, row, qPixmapImage):
+def floodFill(col, row, qPixmapImage: QPixmap):
     # 1.导入图片
+    if qPixmapImage.isNull():
+        print("ERROR: Image is NULL!")
+        return
     img_org = qtpixmap_to_cvimg(qPixmapImage)
 
     # 2.设置参数
