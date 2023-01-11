@@ -4,11 +4,7 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt, QPoint
 # from plot2 import Ui_MainWindow  # 这里的plot2是通过plot2.ui转成的plot2.py文件
 import sys
-import matplotlib
 import os
-import numpy as np
-import cv2
-from floodFill import floodFill
 from scalableImageLabel import scalableImageLabel
 
 
@@ -16,12 +12,12 @@ class MyWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
         self.setupUi(self)
-        self.selectBtn1.clicked.connect(lambda: self.open(self.imageLabel1))
-        self.selectBtn2.clicked.connect(lambda: self.open(self.imageLabel2))
+        self.btnArray1 = [self.floodFillBtn1, self.sqareCutBtn1, self.freeCutBtn1, self.sensorBtn1]
+        self.btnArray2 = [self.floodFillBtn2, self.sqareCutBtn2, self.freeCutBtn2, self.sensorBtn2]
+        self.initClickedBtnConnection()
         self.Path = os.getcwd()
 
     def open(self, imageLabel):
-
         self.imgName, imgType = QFileDialog.getOpenFileName(imageLabel, "打开图片", self.Path,
                                                             "*.jpg;;*.png;;All Files(*)")
         self.jpg = QPixmap(self.imgName)
@@ -34,15 +30,38 @@ class MyWindow(QtWidgets.QMainWindow):
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(self.jpg)
 
-    # def mousePressEvent(self, event):
-    #     if event.button() == Qt.LeftButton:
-    #         baseX, baseY = self.imageLabel1.frameGeometry().x(), self.imageLabel1.frameGeometry().y()
-    #         print(event.pos(), "imageLabel1:(", baseX, baseY, ")")
-    #         col = event.pos().x() - baseX
-    #         row = event.pos().y() - baseY
-    #         print(col, row)
-    #         if not self.jpg.isNull() and 0 <= col < self.imageLabel1.width() and 0 <= row < self.imageLabel1.height():
-    #             floodFill(col, row, self.jpg)
+    def ToolBtnClicked(self, clickedBtn: QtWidgets.QToolButton, btnArray):
+        # self.floodFillBtn1.setCheckable(True)
+        if clickedBtn.isChecked() is True:
+            print(clickedBtn.objectName(), "is clicked and checked!")
+            for i, btn in enumerate(btnArray):
+                if btn is not clickedBtn:
+                    btn.setEnabled(False)
+        else:
+            print(clickedBtn.objectName(), "is clicked and unchecked!")
+            for i, btn in enumerate(btnArray):
+                if btn is not clickedBtn:
+                    btn.setEnabled(True)
+
+    def initClickedBtnConnection(self):
+        self.selectBtn1.clicked.connect(lambda: self.open(self.imageLabel1))
+        self.selectBtn2.clicked.connect(lambda: self.open(self.imageLabel2))
+        self.floodFillBtn1.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.floodFillBtn1, btnArray=self.btnArray1))
+        self.sqareCutBtn1.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.sqareCutBtn1, btnArray=self.btnArray1))
+        self.freeCutBtn1.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.freeCutBtn1, btnArray=self.btnArray1))
+        self.sensorBtn1.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.sensorBtn1, btnArray=self.btnArray1))
+        self.floodFillBtn2.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.floodFillBtn2, btnArray=self.btnArray2))
+        self.sqareCutBtn2.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.sqareCutBtn2, btnArray=self.btnArray2))
+        self.freeCutBtn2.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.freeCutBtn2, btnArray=self.btnArray2))
+        self.sensorBtn2.clicked.connect(
+            lambda: self.ToolBtnClicked(clickedBtn=self.sensorBtn2, btnArray=self.btnArray2))
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -91,6 +110,7 @@ class MyWindow(QtWidgets.QMainWindow):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.floodFillBtn1.sizePolicy().hasHeightForWidth())
         self.floodFillBtn1.setSizePolicy(sizePolicy)
+        self.floodFillBtn1.setCheckable(True)
         self.floodFillBtn1.setMinimumSize(QtCore.QSize(40, 40))
         self.floodFillBtn1.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.floodFillBtn1.setIcon(QIcon(QPixmap("icon/magic_wand.png")))
@@ -106,6 +126,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.sqareCutBtn1.setObjectName("sqareCutBtn1")
         self.sqareCutBtn1.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.sqareCutBtn1.setIcon(QIcon(QPixmap("icon/square.png")))
+        self.sqareCutBtn1.setCheckable(True)
         self.verticalLayout.addWidget(self.sqareCutBtn1)
         self.freeCutBtn1 = QtWidgets.QToolButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -117,6 +138,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.freeCutBtn1.setObjectName("freeCutBtn1")
         self.freeCutBtn1.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.freeCutBtn1.setIcon(QIcon(QPixmap("icon/free_select.png")))
+        self.freeCutBtn1.setCheckable(True)
         self.verticalLayout.addWidget(self.freeCutBtn1)
         self.sensorBtn1 = QtWidgets.QToolButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -128,6 +150,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.sensorBtn1.setObjectName("sensorBtn1")
         self.sensorBtn1.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.sensorBtn1.setIcon(QIcon(QPixmap("icon/sensor.png")))
+        self.sensorBtn1.setCheckable(True)
         self.verticalLayout.addWidget(self.sensorBtn1)
         self.horizontalLayout_4.addLayout(self.verticalLayout)
         self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
@@ -140,7 +163,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.groupBox_3)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.imageLabel1 = scalableImageLabel(self.groupBox_3)
-        #self.imageLabel1.setMaximumSize(QtCore.QSize(471, 539))
+        # self.imageLabel1.setMaximumSize(QtCore.QSize(471, 539))
         self.imageLabel1.setScaledContents(False)
         self.imageLabel1.setAlignment(QtCore.Qt.AlignCenter)
         self.imageLabel1.setObjectName("imageLabel1")
@@ -160,18 +183,21 @@ class MyWindow(QtWidgets.QMainWindow):
         self.floodFillBtn2.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.floodFillBtn2.setIcon(QIcon(QPixmap("icon/magic_wand.png")))
         self.floodFillBtn2.setObjectName("floodFillBtn2")
+        self.floodFillBtn2.setCheckable(True)
         self.verticalLayout_2.addWidget(self.floodFillBtn2)
         self.sqareCutBtn2 = QtWidgets.QToolButton(self.centralwidget)
         self.sqareCutBtn2.setMinimumSize(QtCore.QSize(40, 40))
         self.sqareCutBtn2.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.sqareCutBtn2.setIcon(QIcon(QPixmap("icon/square.png")))
         self.sqareCutBtn2.setObjectName("sqareCutBtn2")
+        self.sqareCutBtn2.setCheckable(True)
         self.verticalLayout_2.addWidget(self.sqareCutBtn2)
         self.freeCutBtn2 = QtWidgets.QToolButton(self.centralwidget)
         self.freeCutBtn2.setMinimumSize(QtCore.QSize(40, 40))
         self.freeCutBtn2.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.freeCutBtn2.setIcon(QIcon(QPixmap("icon/free_select.png")))
         self.freeCutBtn2.setObjectName("freeCutBtn2")
+        self.freeCutBtn2.setCheckable(True)
         self.verticalLayout_2.addWidget(self.freeCutBtn2)
         self.sensorBtn2 = QtWidgets.QToolButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -183,6 +209,7 @@ class MyWindow(QtWidgets.QMainWindow):
         self.sensorBtn2.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.sensorBtn2.setIcon(QIcon(QPixmap("icon/sensor.png")))
         self.sensorBtn2.setObjectName("sensorBtn2")
+        self.sensorBtn2.setCheckable(True)
         self.verticalLayout_2.addWidget(self.sensorBtn2)
         self.horizontalLayout_4.addLayout(self.verticalLayout_2)
         self.groupBox_4 = QtWidgets.QGroupBox(self.centralwidget)
