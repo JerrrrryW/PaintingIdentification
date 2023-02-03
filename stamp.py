@@ -6,8 +6,8 @@ import numpy as np
 
 def drawOutRectgle(cont, isdrawing=False):
     # 最小外接正矩形————用于计算轮廓内每个像素灰度值(去除 矩形-外轮廓)
-    c = cont
-    st_x, st_y, width, height = cv2.boundingRect(c)  # 获取外接正矩形的xy
+    cnt = cont
+    st_x, st_y, width, height = cv2.boundingRect(cnt)  # 获取外接正矩形的xy
     # 对应的四个顶点(0,1,2,3) 0：左上，1：右上，2：右下，3：左下
     bound_rect = np.array([[[st_x, st_y]], [[st_x + width, st_y]],
                            [[st_x + width, st_y + height]], [[st_x, st_y + height]]])

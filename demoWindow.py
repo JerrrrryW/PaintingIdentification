@@ -5,7 +5,8 @@ from PyQt5.QtCore import Qt, QPoint
 # from plot2 import Ui_MainWindow  # 这里的plot2是通过plot2.ui转成的plot2.py文件
 import sys
 import os
-from scalableImageLabel import scalableImageLabel
+
+from scalableImageLabel import scalableImageLabel, global_refresh_result_signal
 
 
 class MyWindow(QtWidgets.QMainWindow):
@@ -16,6 +17,8 @@ class MyWindow(QtWidgets.QMainWindow):
         self.btnArray2 = [self.floodFillBtn2, self.sqareCutBtn2, self.freeCutBtn2, self.sensorBtn2]
         self.initClickedBtnConnection()
         self.Path = os.getcwd()
+
+        global_refresh_result_signal.change_result_image.connect(self.refreshResultImage)
 
     def open(self, imageLabel):
         self.imgName, imgType = QFileDialog.getOpenFileName(imageLabel, "打开图片", self.Path,
@@ -45,6 +48,12 @@ class MyWindow(QtWidgets.QMainWindow):
             for i, btn in enumerate(btnArray):
                 if btn is not clickedBtn:
                     btn.setEnabled(True)
+
+    def refreshResultImage(self, resultImg: QPixmap, labelNum):
+        if labelNum == 1:
+            self.resultImage1.setPixmap(resultImg)
+        elif labelNum == 2:
+            self.resultImage2.setPixmap(resultImg)
 
     def initClickedBtnConnection(self):
         self.selectBtn1.clicked.connect(lambda: self.open(self.imageLabel1))

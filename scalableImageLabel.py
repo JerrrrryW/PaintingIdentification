@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-
+from threading import Thread
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-import sys
 
+from CustomSignal import CustomSignal
 from floodFill import floodFill
 
-'''定义主窗口'''
-
+global_refresh_result_signal = CustomSignal()
 
 class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel继承自QWidget
     def __init__(self, parent=None):
@@ -23,6 +22,11 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
         self.toolIndex = -1 # 工具栏调用工具状态，0为当前未调用工具
+
+    def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
+        resultImg = floodFill(col, row, qPixmapImage)
+        global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
+
 
     '''重载绘图: 动态绘图'''
 
@@ -49,6 +53,12 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
     '''重载一下鼠标按下事件(单击)'''
 
     def mousePressEvent(self, event):
+        pressedImageLabelNum = -1  # 标识鼠标点击事件所在label
+        if self.objectName() == 'imageLabel1':
+            pressedImageLabelNum = 1
+        elif self.objectName() == 'imageLabel2':
+            pressedImageLabelNum = 2
+
         if event.buttons() == QtCore.Qt.LeftButton:  # 左键按下
             print("鼠标左键单击")  # 响应测试语句
             self.isLeftPressed = True;  # 左键按下(图片被点住),置Ture
@@ -57,7 +67,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             col = event.pos().x() - self.singleOffset.x()
             row = event.pos().y() - self.singleOffset.y()
             if self.toolIndex == 0:
-                floodFill(col, row, self.scaledImg)
+                # 使用线程运行裁切脚本
+                thread = Thread(target=self.floodFillThreadFunc, args=(col, row, self.scaledImg, pressedImageLabelNum))
+                thread.start()
+
+                # resultImg = floodFill(col, row, self.scaledImg)
+                # if resultImg is not None:
+
             elif self.toolIndex == 1:
                 pass
             elif self.toolIndex == 2:
