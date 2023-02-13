@@ -30,6 +30,22 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         resultImg = floodFill(col, row, qPixmapImage)
         global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
 
+    def runWhenToolSelect(self): # 当工具栏某一工具被选中时立刻执行
+        if self.toolIndex == 0:  # floodFill
+            pass
+
+        elif self.toolIndex == 1:  # squareCut
+            pass
+
+        elif self.toolIndex == 2:  # freeCut
+            self.freeCutWindow = ImageWin(self.scaledImg)
+            self.freeCutWindow.setMouseTracking(True)
+            self.freeCutWindow.setWindowTitle('Livewire Demo')
+            self.freeCutWindow.show()
+
+        elif self.toolIndex == 3:  # aiSensor
+            pass
+
 
     '''重载绘图: 动态绘图'''
 
@@ -89,10 +105,11 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 self.rect = (event.x(), event.y(), 0, 0)
 
             elif self.toolIndex == 2:  # freeCut
-                self.freeCutWindow = ImageWin(self.scaledImg)
-                self.freeCutWindow.setMouseTracking(True)
-                self.freeCutWindow.setWindowTitle('Livewire Demo')
-                self.freeCutWindow.show()
+                # self.freeCutWindow = ImageWin(self.scaledImg)
+                # self.freeCutWindow.setMouseTracking(True)
+                # self.freeCutWindow.setWindowTitle('Livewire Demo')
+                # self.freeCutWindow.show()
+                pass
 
             elif self.toolIndex == 3:  # aiSensor
                 pass

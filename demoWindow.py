@@ -42,6 +42,7 @@ class MyWindow(QtWidgets.QMainWindow):
                     btn.setEnabled(False)
                 else:
                     bondedImageLb.toolIndex = i
+                    bondedImageLb.runWhenToolSelect()
         else:
             print(clickedBtn.objectName(), "is clicked and unchecked!")
             bondedImageLb.toolIndex = -1
