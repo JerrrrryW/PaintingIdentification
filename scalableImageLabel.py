@@ -6,6 +6,8 @@ from PyQt5.QtCore import *
 
 from CustomSignal import CustomSignal
 from floodFill import floodFill, qtpixmap_to_cvimg, cvimg_to_qtimg
+from pylivewire_master.freeCut_main import freeCut_main
+from pylivewire_master.gui import ImageWin
 
 global_refresh_result_signal = CustomSignal()
 
@@ -87,8 +89,11 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 self.rect = (event.x(), event.y(), 0, 0)
 
             elif self.toolIndex == 2:  # freeCut
+                self.freeCutWindow = ImageWin(self.scaledImg)
+                self.freeCutWindow.setMouseTracking(True)
+                self.freeCutWindow.setWindowTitle('Livewire Demo')
+                self.freeCutWindow.show()
 
-                pass
             elif self.toolIndex == 3:  # aiSensor
                 pass
 

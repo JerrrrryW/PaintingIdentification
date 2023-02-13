@@ -13,7 +13,8 @@ from threading import Thread
 
 from PyQt5.QtGui import QPixmap, QPainter
 
-from livewire import Livewire
+from floodFill import qtpixmap_to_cvimg
+from pylivewire_master.livewire import Livewire
 
 class ImageWin(QtWidgets.QWidget):
     def __init__(self, img: QPixmap):
@@ -29,12 +30,13 @@ class ImageWin(QtWidgets.QWidget):
         self.hbox = QtWidgets.QVBoxLayout(self)
         
         # Load and initialize image
-        self.image_path = ''
+        # self.image_path = ''
         # while self.image_path == '':
         #     self.image_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, '', '', '(*.bmp *.jpg *.png)')
         # self.image = QPixmap(self.image_path)
         self.image = img
-        self.cv2_image = cv2.imread(str(self.image_path))
+        # self.cv2_image = cv2.imread(str(self.image_path))
+        self.cv2_image = qtpixmap_to_cvimg(img)
         self.lw = Livewire(self.cv2_image)
         self.w, self.h = self.image.width(), self.image.height()
         
