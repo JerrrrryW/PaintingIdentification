@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from threading import Thread
+
+import cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -8,6 +10,8 @@ from CustomSignal import CustomSignal
 from floodFill import floodFill, qtpixmap_to_cvimg, cvimg_to_qtimg
 from pylivewire_master.freeCut_main import freeCut_main
 from pylivewire_master.gui import ImageWin
+from stamp import findStamp
+from utils import drawOutRectgle
 
 global_refresh_result_signal = CustomSignal()
 
@@ -30,7 +34,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         resultImg = floodFill(col, row, qPixmapImage)
         global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
 
-    def runWhenToolSelect(self): # 当工具栏某一工具被选中时立刻执行
+    def runWhenToolSelected(self): # 当工具栏某一工具被选中时立刻执行
         if self.toolIndex == 0:  # floodFill
             pass
 
@@ -44,7 +48,10 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.freeCutWindow.show()
 
         elif self.toolIndex == 3:  # aiSensor
+            self.scaledImg, self.cnts, self.stampSavedPath = findStamp(self.scaledImg)
+            self.repaint()
             pass
+
 
 
     '''重载绘图: 动态绘图'''
@@ -105,6 +112,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 self.rect = (event.x(), event.y(), 0, 0)
 
             elif self.toolIndex == 2:  # freeCut
+                # 本部分暂时移动至独立窗口
                 # self.freeCutWindow = ImageWin(self.scaledImg)
                 # self.freeCutWindow.setMouseTracking(True)
                 # self.freeCutWindow.setWindowTitle('Livewire Demo')
@@ -112,7 +120,15 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 pass
 
             elif self.toolIndex == 3:  # aiSensor
-                pass
+                for i, contour in enumerate(self.cnts):  # 遍历轮廓列表
+                    dist = cv2.pointPolygonTest(contour, (event.x(), event.y()), False)  # 判断鼠标的坐标是否在轮廓内
+                    if dist >= 0:  # 如果是
+                        print(f"Clicked on contour {i}")  # 打印轮廓的下标
+                        x_min, x_max, y_min, y_max = drawOutRectgle(contour)
+                        img_mini = QPixmap(cvimg_to_qtimg(qtpixmap_to_cvimg(self.scaledImg)[y_min:y_max, x_min:x_max]))
+                        global_refresh_result_signal.change_result_image.emit(img_mini, pressedImageLabelNum)
+                        break
+                    print("Clicked outside of any contour")  # 如果没有点击在任何轮廓内
 
         elif event.buttons() == QtCore.Qt.RightButton:  # 右键按下
             print("鼠标右键单击")  # 响应测试语句

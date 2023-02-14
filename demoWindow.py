@@ -42,11 +42,12 @@ class MyWindow(QtWidgets.QMainWindow):
                     btn.setEnabled(False)
                 else:
                     bondedImageLb.toolIndex = i
-                    bondedImageLb.runWhenToolSelect()
+                    bondedImageLb.runWhenToolSelected()
         else:
             print(clickedBtn.objectName(), "is clicked and unchecked!")
             bondedImageLb.toolIndex = -1
             bondedImageLb.rect = None  # 重置矩形框
+            bondedImageLb.scaledImg = bondedImageLb.imgPixmap
             bondedImageLb.repaint()
             for i, btn in enumerate(btnArray):
                 if btn is not clickedBtn:

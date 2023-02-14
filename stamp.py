@@ -4,7 +4,7 @@ import imutils
 import numpy as np
 from PyQt5.QtGui import QPixmap
 
-from utils import qtpixmap_to_cvimg, drawOutRectgle
+from utils import qtpixmap_to_cvimg, drawOutRectgle, cvimg_to_qtimg
 
 
 # if __name__ == "__main__":
@@ -59,6 +59,7 @@ def findStamp(imgInput: QPixmap):
 
     # (6).cnts 返回的是所有轮廓，所以需要for循环来遍历每一个轮廓
     savePath = ".\\output\\stamp"
+    img = img.copy()
     for i, c in enumerate(cnts):
         # 计算轮廓区域的图像矩。 在计算机视觉和图像处理中，图像矩通常用于表征图像中对象的形状。
         # 计算最小外接正矩形的四个顶点，是否绘制外矩形框
@@ -68,9 +69,11 @@ def findStamp(imgInput: QPixmap):
         cv2.imwrite(savePath + str(i)+".jpg", img_mini)
         print(savePath + str(i)+".jpg")
 
-    cv2.imshow("img with rectangle", img)
+    # cv2.imshow("img with rectangle", img)
+    imgOutput = QPixmap(cvimg_to_qtimg(img))
+
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return cnts, savePath
+    return imgOutput, cnts, savePath
