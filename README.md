@@ -1,0 +1,2 @@
+# PaintingIdentification
+### Run mainWindow.py 
