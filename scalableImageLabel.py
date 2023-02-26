@@ -15,6 +15,7 @@ from utils import drawOutRectgle
 
 global_refresh_result_signal = CustomSignal()
 
+
 class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel继承自QWidget
     def __init__(self, parent=None):
         super(scalableImageLabel, self).__init__(parent)
@@ -34,7 +35,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         resultImg = floodFill(col, row, qPixmapImage)
         global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
 
-    def runWhenToolSelected(self): # 当工具栏某一工具被选中时立刻执行
+    def runWhenToolSelected(self):  # 当工具栏某一工具被选中时立刻执行
         if self.toolIndex == 0:  # floodFill
             pass
 
@@ -48,11 +49,26 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.freeCutWindow.show()
 
         elif self.toolIndex == 3:  # aiSensor
+            self.scaledImgTemp = self.scaledImg
             self.scaledImg, self.cnts, self.stampSavedPath = findStamp(self.scaledImg)
             self.repaint()
             pass
 
+    def runWhenToolReleased(self):  # 当工具栏选中的工具被释放时立刻执行
+        if self.toolIndex == 0:  # floodFill
+            pass
 
+        elif self.toolIndex == 1:  # squareCut
+            self.rect = None  # 重置矩形框
+            # bondedImageLb.scaledImg = bondedImageLb.imgPixmap
+            self.repaint()
+
+        elif self.toolIndex == 2:  # freeCut
+            pass
+
+        elif self.toolIndex == 3:  # aiSensor
+            self.scaledImg = self.scaledImgTemp
+            self.repaint()
 
     '''重载绘图: 动态绘图'''
 
@@ -88,6 +104,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
     #          最后,更新偏移值,移动图片.
     # =============================================================================
     '''重载一下鼠标按下事件(单击)'''
+
     def mousePressEvent(self, event):
         pressedImageLabelNum = -1  # 标识鼠标点击事件所在label
         if self.objectName() == 'imageLabel1':
@@ -121,7 +138,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
 
             elif self.toolIndex == 3:  # aiSensor
                 for i, contour in enumerate(self.cnts):  # 遍历轮廓列表
-                    dist = cv2.pointPolygonTest(contour, (event.x(), event.y()), False)  # 判断鼠标的坐标是否在轮廓内
+                    dist = cv2.pointPolygonTest(contour, (event.x()-self.singleOffset.x(), event.y()-self.singleOffset.y()), False)  # 判断鼠标的坐标是否在轮廓内
                     if dist >= 0:  # 如果是
                         print(f"Clicked on contour {i}")  # 打印轮廓的下标
                         x_min, x_max, y_min, y_max = drawOutRectgle(contour)
@@ -143,6 +160,36 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         elif event.buttons() == QtCore.Qt.LeftButton | QtCore.Qt.MidButton \
                 | QtCore.Qt.RightButton:  # 左中右键同时按下
             print("鼠标左中右键同时单击")  # 响应测试语句
+
+    '''重载一下鼠标键松开事件'''
+
+    def mouseReleaseEvent(self, event):
+        # super().mouseReleaseEvent(event)
+        pressedImageLabelNum = -1  # 标识鼠标点击事件所在label
+        if self.objectName() == 'imageLabel1':
+            pressedImageLabelNum = 1
+        elif self.objectName() == 'imageLabel2':
+            pressedImageLabelNum = 2
+
+        # if event.buttons() == Qt.LeftButton:  # 左键释放
+        if True:
+            self.isLeftPressed = False  # 左键释放(图片被点住),置False
+            print("鼠标左键松开")  # 响应测试语句
+            print("Moved to:", self.singleOffset)
+
+            if self.toolIndex == 1 and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
+                img_org = qtpixmap_to_cvimg(self.scaledImg)
+                cut_y = self.rect[1] - self.singleOffset.y()
+                cut_x = self.rect[0] - self.singleOffset.x()
+                img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
+                resultImg = QPixmap(cvimg_to_qtimg(img_mini))
+                global_refresh_result_signal.change_result_image.emit(resultImg, pressedImageLabelNum)
+
+        # elif event.button() == Qt.RightButton:  # 右键释放
+        #     self.singleOffset = QPoint(0, 0)  # 置为初值
+        #     self.scaledImg = self.imgPixmap.scaled(self.size())  # 置为初值
+        #     self.repaint()  # 重绘
+        #     print("鼠标右键松开")  # 响应测试语句
 
     '''重载一下滚轮滚动事件'''
 
@@ -182,36 +229,6 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             print("to:", self.singleOffset)
             self.repaint()  # 重绘
 
-    '''重载一下鼠标键松开事件'''
-
-    def mouseReleaseEvent(self, event):
-        # super().mouseReleaseEvent(event)
-        pressedImageLabelNum = -1  # 标识鼠标点击事件所在label
-        if self.objectName() == 'imageLabel1':
-            pressedImageLabelNum = 1
-        elif self.objectName() == 'imageLabel2':
-            pressedImageLabelNum = 2
-
-        # if event.buttons() == Qt.LeftButton:  # 左键释放
-        if True:
-            self.isLeftPressed = False  # 左键释放(图片被点住),置False
-            print("鼠标左键松开")  # 响应测试语句
-            print("Moved to:", self.singleOffset)
-
-            if self.toolIndex == 1:  # square cut
-                img_org = qtpixmap_to_cvimg(self.scaledImg)
-                cut_y = self.rect[1] - self.singleOffset.y()
-                cut_x = self.rect[0] - self.singleOffset.x()
-                img_mini = img_org[cut_y:cut_y+self.rect[3], cut_x:cut_x+self.rect[2]]
-                resultImg = QPixmap(cvimg_to_qtimg(img_mini))
-                global_refresh_result_signal.change_result_image.emit(resultImg, pressedImageLabelNum)
-
-        # elif event.button() == Qt.RightButton:  # 右键释放
-        #     self.singleOffset = QPoint(0, 0)  # 置为初值
-        #     self.scaledImg = self.imgPixmap.scaled(self.size())  # 置为初值
-        #     self.repaint()  # 重绘
-        #     print("鼠标右键松开")  # 响应测试语句
-
     '''重载一下鼠标移动事件'''
 
     def mouseMoveEvent(self, event):
@@ -226,34 +243,33 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.rect = (start_x, start_y, event.x() - start_x, event.y() - start_y)
             self.update()
 
-#    '''重载一下鼠标双击事件'''
-#    def mouseDoubieCiickEvent(self, event):
-#        if event.buttons() == QtCore.Qt.LeftButton:                           # 左键按下
-#            self.setText ("双击鼠标左键的功能: 自己定义")
-#
-#
-#    '''重载一下鼠标进入控件事件'''
-#    def enterEvent(self, event):
-#
-#
-#    '''重载一下鼠标离开控件事件'''
-#    def leaveEvent(self, event):
-#
+    #    '''重载一下鼠标双击事件'''
+    #    def mouseDoubieCiickEvent(self, event):
+    #        if event.buttons() == QtCore.Qt.LeftButton:                           # 左键按下
+    #            self.setText ("双击鼠标左键的功能: 自己定义")
+    #
+    #
+    #    '''重载一下鼠标进入控件事件'''
+    #    def enterEvent(self, event):
+    #
+    #
+    #    '''重载一下鼠标离开控件事件'''
+    #    def leaveEvent(self, event):
+    #
 
-#    '''重载一下鼠标进入控件事件'''
-#    def enterEvent(self, event):
-#
-#
-#    '''重载一下鼠标离开控件事件'''
-#    def leaveEvent(self, event):
-#
+    #    '''重载一下鼠标进入控件事件'''
+    #    def enterEvent(self, event):
+    #
+    #
+    #    '''重载一下鼠标离开控件事件'''
+    #    def leaveEvent(self, event):
+    #
 
     def drawRect(self, qp):
         # 创建红色，宽度为4像素的画笔
         pen = QPen(Qt.red, 2)
         qp.setPen(pen)
         qp.drawRect(*self.rect)
-
 
 # '''主函数'''
 # if __name__ == "__main__":
