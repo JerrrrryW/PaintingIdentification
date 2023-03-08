@@ -6,12 +6,25 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from scalableImageLabel import scalableImageLabel
+
 
 class DemoWindow:
 
     def __init__(self):
         self.ui = uic.loadUi('QT_UI\\flood_fill_ui.ui')
-        self.ui.select_btn.clicked.connect(self.selectImage)
+        self.ui.selectBtn1.clicked.connect(self.selectImage)
+        self.ui.imageLabel1 = scalableImageLabel(self.ui.groupBox_3)
+        self.ui.imageLabel1.setScaledContents(False)
+        self.ui.imageLabel1.setAlignment(QtCore.Qt.AlignCenter)
+        self.ui.imageLabel1.setObjectName("imageLabel1")
+        self.ui.horizontalLayout_5.addWidget(self.ui.imageLabel1)
+        self.ui.imageLabel2 = scalableImageLabel(self.ui.groupBox_4)
+        self.ui.imageLabel2.setScaledContents(False)
+        self.ui.imageLabel2.setAlignment(QtCore.Qt.AlignCenter)
+        self.ui.imageLabel2.setObjectName("imageLabel2")
+        self.ui.horizontalLayout_6.addWidget(self.ui.imageLabel2)
+
         self.Path = os.getcwd()
 
     def selectImage(self):
