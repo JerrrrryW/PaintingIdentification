@@ -31,6 +31,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Select Image1</string>
         </property>
@@ -44,21 +49,56 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Select Image2</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="saveBtn">
+       <widget class="QToolButton" name="moveBtn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::NoContextMenu</enum>
+        </property>
         <property name="text">
-         <string>Save Result</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icon/move.png</normaloff>../icon/move.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -75,6 +115,11 @@
           <width>40</width>
           <height>40</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
         </property>
         <property name="contextMenuPolicy">
          <enum>Qt::NoContextMenu</enum>
@@ -95,6 +140,9 @@
         <property name="checkable">
          <bool>true</bool>
         </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -110,6 +158,11 @@
           <width>40</width>
           <height>40</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
         </property>
         <property name="contextMenuPolicy">
          <enum>Qt::NoContextMenu</enum>
@@ -130,6 +183,9 @@
         <property name="checkable">
          <bool>true</bool>
         </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -146,6 +202,11 @@
           <height>40</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -160,6 +221,9 @@
          </size>
         </property>
         <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoRaise">
          <bool>true</bool>
         </property>
        </widget>
@@ -178,6 +242,11 @@
           <height>40</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>检测</string>
         </property>
@@ -194,10 +263,18 @@
         <property name="checkable">
          <bool>true</bool>
         </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer">
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -208,6 +285,24 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="saveBtn">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>7</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Save Results</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -226,6 +321,11 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Compared Image 1</string>
           </property>
@@ -243,6 +343,11 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Compared Image 2</string>
           </property>
@@ -255,6 +360,11 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QGroupBox" name="result1GroupBox">
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Result 1</string>
           </property>
@@ -273,6 +383,11 @@
                <height>539</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Origin Image Result</string>
              </property>
@@ -289,6 +404,11 @@
         </item>
         <item>
          <widget class="QGroupBox" name="result2GroupBox">
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Result 2</string>
           </property>
@@ -300,6 +420,11 @@
                <width>471</width>
                <height>539</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
              </property>
              <property name="text">
               <string>Compared Image Result</string>
@@ -327,8 +452,13 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Attributes</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -348,6 +478,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -358,6 +493,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider_4">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -371,6 +511,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -381,6 +526,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider_5">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -394,6 +544,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -404,6 +559,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider_6">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -420,8 +580,13 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>7</pointsize>
+           </font>
+          </property>
           <property name="title">
-           <string>GroupBox</string>
+           <string>Attributes</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -441,6 +606,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -451,6 +621,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -464,6 +639,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -474,6 +654,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider_2">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -487,6 +672,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>TextLabel</string>
              </property>
@@ -497,6 +687,11 @@
            </item>
            <item>
             <widget class="QSlider" name="horizontalSlider_3">
+             <property name="font">
+              <font>
+               <pointsize>7</pointsize>
+              </font>
+             </property>
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
