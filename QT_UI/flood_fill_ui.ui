@@ -124,7 +124,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="sqareCutBtn">
+       <widget class="QToolButton" name="squareCutBtn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
