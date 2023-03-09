@@ -13,11 +13,14 @@ class DemoWindow:
 
     def __init__(self):
         self.ui = uic.loadUi('QT_UI\\flood_fill_ui.ui')
-        self.toolGroup = QButtonGroup()
-        self.selectedImage = 0
-
         self.initImageLabels()
+
+        self.toolGroup = QButtonGroup()
         self.initToolBar()
+
+        self.selectedImgNum = 0
+        self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
+
         self.initClickedBtnConnection()
 
         self.Path = os.getcwd()
@@ -36,10 +39,10 @@ class DemoWindow:
         self.ui.horizontalLayout_6.addWidget(self.ui.imageLabel2)
 
     def initToolBar(self):
-        self.toolGroup.addButton(self.ui.freeCutBtn)
-        self.toolGroup.addButton(self.ui.floodFillBtn)
-        self.toolGroup.addButton(self.ui.squareCutBtn)
-        self.toolGroup.addButton(self.ui.sensorBtn)
+        self.toolGroup.addButton(self.ui.floodFillBtn, 0)
+        self.toolGroup.addButton(self.ui.squareCutBtn, 1)
+        self.toolGroup.addButton(self.ui.freeCutBtn, 2)
+        self.toolGroup.addButton(self.ui.sensorBtn, 3)
         self.toolGroup.setExclusive(True)
 
     def initClickedBtnConnection(self):
@@ -49,15 +52,32 @@ class DemoWindow:
         # highlight the groupbox corresponding to the selected image label
         global_refresh_result_signal.highlight_selected_box.connect(self.onLabelClicked)
 
+        self.toolGroup.buttonPressed[int].connect(lambda _:  # [int] 指定了信号传递的为触发的按钮id
+                                                  self.onToolBtnClicked(_, self.imageLabels[self.selectedImgNum]))
+        self.toolGroup.buttonReleased[int].connect(lambda:
+                                                   self.onToolBtnReleased(self.imageLabels[self.selectedImgNum]))
+
     def onLabelClicked(self, index: int):
         # the corresponding GroupBox to blue and the other groupboxes to grey
         print(f"groupbox {index} clicked!")
         if index == 1:
+            self.ui.imageLabel1.isSelected = True
+            self.ui.imageLabel2.isSelected = False
             self.ui.image1GroupBox.setStyleSheet("QGroupBox {border: 3px solid blue;}")
             self.ui.image2GroupBox.setStyleSheet("")
         elif index == 2:
+            self.ui.imageLabel1.isSelected = False
+            self.ui.imageLabel2.isSelected = True
             self.ui.image1GroupBox.setStyleSheet("")
             self.ui.image2GroupBox.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+
+    def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
+        selectedImageLb.toolIndex = clickedBtnID
+        selectedImageLb.runWhenToolSelected()
+
+    def onToolBtnReleased(self, selectedImageLb: scalableImageLabel):
+        selectedImageLb.toolIndex = -1
+        selectedImageLb.runWhenToolReleased()
 
     def open(self, imageLabel):
         self.imgName, imgType = QFileDialog.getOpenFileName(imageLabel, "打开图片", self.Path,
