@@ -4,6 +4,8 @@ from PyQt5.QtGui import QPixmap
 
 '''自定义信号量'''
 class CustomSignal(QObject):
-    # 在demoWindow中实例化全局信号量，当裁剪子进程处理完毕后刷新UI
+    # Create a semaphore in demoWindow and update UI after clipping.
     change_result_image = pyqtSignal(QPixmap, int)
+    # Highlight the corresponding GroupBox
+    highlight_selected_box = pyqtSignal(int)
 

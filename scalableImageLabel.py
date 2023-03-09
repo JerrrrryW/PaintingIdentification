@@ -111,6 +111,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             pressedImageLabelNum = 1
         elif self.objectName() == 'imageLabel2':
             pressedImageLabelNum = 2
+        global_refresh_result_signal.highlight_selected_box.emit(pressedImageLabelNum)
 
         if event.buttons() == QtCore.Qt.LeftButton:  # 左键按下
             print("鼠标左键单击")  # 响应测试语句
