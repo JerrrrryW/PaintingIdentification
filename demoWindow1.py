@@ -24,7 +24,18 @@ class DemoWindow:
 
         self.initClickedBtnConnection()
 
+        # highlight the groupbox corresponding to the selected image label
+        global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
+        # show the processing result images on corresponding labels
+        global_refresh_result_signal.change_result_image.connect(self.refreshResultImage)
+
         self.Path = os.getcwd()
+
+    def refreshResultImage(self, resultImg: QPixmap, labelNum):
+        if labelNum == 1:
+            self.ui.resultImage1.setPixmap(resultImg)
+        elif labelNum == 2:
+            self.ui.resultImage2.setPixmap(resultImg)
 
     def initImageLabels(self):
         # Load custom image label
@@ -52,8 +63,6 @@ class DemoWindow:
         # image file uploading
         self.ui.selectBtn1.clicked.connect(lambda: self.open(self.ui.imageLabel1))
         self.ui.selectBtn2.clicked.connect(lambda: self.open(self.ui.imageLabel2))
-        # highlight the groupbox corresponding to the selected image label
-        global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
 
         self.toolGroup.buttonPressed[int].connect(lambda _:  # [int] 指定了信号传递的为触发的按钮id
                                                   self.onToolBtnClicked(_, self.imageLabels[self.selectedImgNum]))
