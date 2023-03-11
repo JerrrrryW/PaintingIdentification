@@ -13,16 +13,17 @@ class DemoWindow:
 
     def __init__(self):
         self.ui = uic.loadUi('QT_UI\\flood_fill_ui.ui')
-        self.initImageLabels()
 
         self.toolGroup = QButtonGroup()
-        self.initToolBar()
-
         self.selectedImgNum = 0  # 0,1,2   0 means no img label selected
         self.selectedToolNum = -1  # -1,0,1,2,3   -1 means default moving mode
-        self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
 
+        self.initImageLabels()
+        self.initToolBar()
         self.initClickedBtnConnection()
+        self.initTabBar()
+
+        self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
 
         # highlight the groupbox corresponding to the selected image label
         global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
@@ -69,6 +70,63 @@ class DemoWindow:
         self.toolGroup.buttonReleased[int].connect(lambda:
                                                    self.onToolBtnReleased(self.imageLabels[self.selectedImgNum]))
 
+    def initTabBar(self):  # Tri-layer attributes tab bar on the right side
+        primaryTabs = ["形状", "墨色", "笔法", "纹理"]
+        secondaryTabs = [["轮廓", "结构"],  # 形状的二级指标
+                         ["色调", "层次"],  # 墨色的二级指标
+                         ["力量", "技巧"],  # 笔法的二级指标
+                         ["材质", "效果"]]  # 纹理的二级指标
+        tertiaryTabs = [[["线宽", "线锋", "线形"],  # 轮廓的三级指标
+                         ["位置", "大小", "比例", "方向"]],  # 结构的三级指标
+                        [["明度", "色温", "饱和度"],  # 色调的三级指标
+                         ["变化度", "过渡度", "对比度"]],  # 层次的三级指标
+                        [["压力", "弹性", "速度"],  # 力量的三级指标
+                         ["熟练度", "灵活度", "变化度"]],  # 技巧的三级指标
+                        [["类型", "质地", "吸墨性"],  # 材质的三级指标
+                         ["光泽度", "透明度", "模糊度"]]]  # 效果的三级指标
+
+        self.ui.secTabStack.removeWidget(self.ui.secPage1)
+        self.ui.terAttrStack.removeWidget(self.ui.terPage1)
+        for i in range(len(primaryTabs)):  # retrieve the tabs
+            self.ui.primaryTabBar.addItem(primaryTabs[i])  # fill primary indicators in listview
+            # create pages dynamically to secondaryTabStack
+            secPage = QtWidgets.QWidget()
+            secPage.setObjectName(f"secondaryTabPage{i}")
+            secLayout = QtWidgets.QHBoxLayout(secPage)
+
+            listview = QtWidgets.QListWidget()
+            for j in range(len(secondaryTabs[i])):
+                listview.addItem(secondaryTabs[i][j])
+                # init terAttrPage in stackedWidget
+                terPage = QtWidgets.QWidget()
+                terPage.setObjectName(f"tertiaryAttrPage{i}-{j}")
+                terLayout = QtWidgets.QVBoxLayout(terPage)
+                terLayout.addWidget(self.createTertiaryAttributesGroupBox(tertiaryTabs[i][j], i, j, 1))
+                terLayout.addWidget(self.createTertiaryAttributesGroupBox(tertiaryTabs[i][j], i, j, 2))
+                self.ui.terAttrStack.addWidget(terPage)
+            secLayout.addWidget(listview)
+            listview.currentRowChanged.connect(self.on_row_changed(i))
+
+            self.ui.secTabStack.addWidget(secPage)
+        self.ui.primaryTabBar.currentRowChanged.connect(self.ui.secTabStack.setCurrentIndex)
+
+    def on_row_changed(self, i):
+        return lambda row: self.ui.terAttrStack.setCurrentIndex(2 * i + row)
+
+    def createTertiaryAttributesGroupBox(self, terAttrList: [], pri, sec, pos):  # pri&sec is the parentTab num, pos means up1/down2 image
+        attrGroupBox = QGroupBox()
+        attrGroupBox.setTitle("Attributes")
+        attrLayout = QVBoxLayout(attrGroupBox)
+        for i in range(len(terAttrList)):
+            attrLayout.addWidget(QLabel(terAttrList[i] + ": "))
+            valueLabel = QLabel("0")
+            valueLabel.setObjectName(f"terAttrValue{pri}-{sec}-{i}-{pos}")  # to assure objectName is unique
+            slideBar = QSlider(Qt.Horizontal)
+            slideBar.setObjectName(f"terAttrSlider{pri}-{sec}-{i}-{pos}")
+            attrLayout.addWidget(valueLabel)
+            attrLayout.addWidget(slideBar)
+        return attrGroupBox
+
     def onLabelSwitched(self, index: int):
         print(f"Working image label switched to groupbox {index}")
         self.selectedImgNum = index - 1
@@ -98,7 +156,6 @@ class DemoWindow:
         # selectedImageLb.toolIndex = -1
         # selectedImageLb.runWhenToolReleased()
         pass
-
 
     def open(self, imageLabel):
         self.imgName, imgType = QFileDialog.getOpenFileName(imageLabel, "打开图片", self.Path,
