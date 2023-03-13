@@ -58,7 +58,7 @@ def findStamp(imgInput: QPixmap):
     # print (cnts)
 
     # (6).cnts 返回的是所有轮廓，所以需要for循环来遍历每一个轮廓
-    savePath = ".\\output\\stamp"
+    savePath = "..\\output\\stamp"
     img = img.copy()
     for i, c in enumerate(cnts):
         # 计算轮廓区域的图像矩。 在计算机视觉和图像处理中，图像矩通常用于表征图像中对象的形状。

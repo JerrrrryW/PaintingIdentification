@@ -8,9 +8,8 @@ from PyQt5.QtCore import *
 
 from CustomSignal import CustomSignal
 from floodFill import floodFill, qtpixmap_to_cvimg, cvimg_to_qtimg
-from pylivewire_master.freeCut_main import freeCut_main
 from pylivewire_master.gui import ImageWin
-from stamp import findStamp
+from processing.stamp import findStamp
 from utils import drawOutRectgle
 
 global_refresh_result_signal = CustomSignal()
@@ -21,7 +20,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         super(scalableImageLabel, self).__init__(parent)
         # self.resize(500, 500)  # 设定窗口大小(根据自己显示图片的大小，可更改)
 
-        self.imgPixmap = QPixmap('input/painting3.jpg')  # 载入图片
+        self.imgPixmap = QPixmap('input/painting2.jpg')  # 载入图片
         # self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
         self.scaledImg = self.imgPixmap
         self.singleOffset = QPoint(0, 0)  # 初始化偏移值
