@@ -12,7 +12,7 @@ from scalableImageLabel import scalableImageLabel, global_refresh_result_signal
 class DemoWindow:
 
     def __init__(self):
-        self.ui = uic.loadUi('QT_UI\\flood_fill_ui.ui')
+        self.ui = uic.loadUi('QT_UI\\version3.ui')
 
         self.toolGroup = QButtonGroup()
         self.selectedImgNum = 0  # 0,1,2   0 means no img label selected
@@ -21,7 +21,7 @@ class DemoWindow:
         self.initImageLabels()
         self.initToolBar()
         self.initClickedBtnConnection()
-        self.initTabBar()
+        # self.initTabBar()
 
         self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
 
@@ -40,12 +40,19 @@ class DemoWindow:
 
     def initImageLabels(self):
         # Load custom image label
-        self.ui.imageLabel1 = scalableImageLabel(self.ui.image1GroupBox)
+        page1 = self.ui.processingStackedWidget.widget(0)
+        self.ui.horizontalLayout_5 = QHBoxLayout()
+        page1.setLayout(self.ui.horizontalLayout_5)
+        self.ui.imageLabel1 = scalableImageLabel(page1)
         self.ui.imageLabel1.setScaledContents(False)
         self.ui.imageLabel1.setAlignment(QtCore.Qt.AlignCenter)
         self.ui.imageLabel1.setObjectName("imageLabel1")
         self.ui.horizontalLayout_5.addWidget(self.ui.imageLabel1)
-        self.ui.imageLabel2 = scalableImageLabel(self.ui.image2GroupBox)
+
+        page2 = self.ui.processingStackedWidget.widget(1)
+        self.ui.horizontalLayout_6 = QHBoxLayout()
+        page1.setLayout(self.ui.horizontalLayout_6)
+        self.ui.imageLabel2 = scalableImageLabel(page2)
         self.ui.imageLabel2.setScaledContents(False)
         self.ui.imageLabel2.setAlignment(QtCore.Qt.AlignCenter)
         self.ui.imageLabel2.setObjectName("imageLabel2")
@@ -62,8 +69,8 @@ class DemoWindow:
 
     def initClickedBtnConnection(self):
         # image file uploading
-        self.ui.selectBtn1.clicked.connect(lambda: self.open(self.ui.imageLabel1))
-        self.ui.selectBtn2.clicked.connect(lambda: self.open(self.ui.imageLabel2))
+        self.ui.selectBtn1.clicked.connect(lambda: self.open(self.ui.originImage1))
+        self.ui.selectBtn2.clicked.connect(lambda: self.open(self.ui.originImage2))
 
         self.toolGroup.buttonPressed[int].connect(lambda _:  # [int] 指定了信号传递的为触发的按钮id
                                                   self.onToolBtnClicked(_, self.imageLabels[self.selectedImgNum]))
@@ -163,12 +170,15 @@ class DemoWindow:
         self.jpg = QPixmap(self.imgName)
         print("origin:", self.jpg.width(), self.jpg.height())
         print("label:", imageLabel.width(), imageLabel.height())
-        # self.jpg = self.jpg.scaledToWidth(imageLabel.width(), imageLabel.height())
-        print("scaled:", self.jpg.width(), self.jpg.height())
-        # self.label.setPixmap(jpg)
-        if not self.jpg.isNull():
+
+        # Scale the image to fit within the size of imageLabel
+        scaled_jpg = self.jpg.scaled(imageLabel.size(), QtCore.Qt.KeepAspectRatio)
+
+        print("scaled:", scaled_jpg.width(), scaled_jpg.height())
+
+        if not scaled_jpg.isNull():
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            imageLabel.setPixmap(self.jpg)
+            imageLabel.setPixmap(scaled_jpg)
 
 
 if __name__ == '__main__':

@@ -28,7 +28,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
         self.toolIndex = -1  # 工具栏调用工具状态，0为当前未调用工具
-        self.isSelected = False
+        # self.isSelected = False
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
@@ -111,8 +111,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             pressedImageLabelNum = 1
         elif self.objectName() == 'imageLabel2':
             pressedImageLabelNum = 2
-        if self.isSelected is False:  # avoid emitting signal frequently
-            global_refresh_result_signal.highlight_selected_box.emit(pressedImageLabelNum)
+        # if self.isSelected is False:  # avoid emitting signal frequently
+        #     global_refresh_result_signal.highlight_selected_box.emit(pressedImageLabelNum)
 
         if event.buttons() == QtCore.Qt.LeftButton:  # 左键按下
             print("鼠标左键单击")  # 响应测试语句
