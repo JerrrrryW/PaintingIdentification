@@ -1,10 +1,13 @@
 import os
+
+import PyQt5.QtCore
 from PyQt5 import uic
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 
 
@@ -38,6 +41,23 @@ class DemoWindow:
             self.ui.resultImage2.setPixmap(resultImg)
 
     def initImageLabels(self):
+        # Load custom clickable origin image label
+        originGroupBox1 = self.ui.originGroupBox1
+        self.ui.originImage1 = ClickableLabel(originGroupBox1)
+        self.ui.originImage1.setAlignment(QtCore.Qt.AlignCenter)
+        self.ui.originImage1.setObjectName("originImage1")
+        self.ui.originImgHLayout1 = QHBoxLayout()
+        self.ui.originImgHLayout1.addWidget(self.ui.originImage1, stretch=1, alignment=Qt.AlignCenter)
+        originGroupBox1.setLayout(self.ui.originImgHLayout1)
+
+        originGroupBox2 = self.ui.originGroupBox2
+        self.ui.originImage2 = ClickableLabel(originGroupBox2)
+        self.ui.originImage2.setAlignment(QtCore.Qt.AlignCenter)
+        self.ui.originImage2.setObjectName("originImage2")
+        self.ui.originImgHLayout2 = QHBoxLayout()
+        self.ui.originImgHLayout2.addWidget(self.ui.originImage2, stretch=1, alignment=Qt.AlignCenter)
+        originGroupBox2.setLayout(self.ui.originImgHLayout2)
+
         # Load custom image label
         page1 = self.ui.processingStackedWidget.widget(0)
         self.ui.horizontalLayout_5 = QHBoxLayout()
