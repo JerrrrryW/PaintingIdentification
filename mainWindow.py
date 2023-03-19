@@ -1,12 +1,11 @@
-from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QGridLayout
-from PyQt5.QtGui import QPainter, QPixmap, QIcon
-from PyQt5 import uic, QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5 import QtWidgets, QtCore
 # from plot2 import Ui_MainWindow  # 这里的plot2是通过plot2.ui转成的plot2.py文件
 import sys
 import os
 
-from scalableImageLabel import scalableImageLabel, global_refresh_result_signal
+from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 
 
 class MyWindow(QtWidgets.QMainWindow):

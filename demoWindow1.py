@@ -1,12 +1,11 @@
-import sys
 import os
 from PyQt5 import uic
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from scalableImageLabel import scalableImageLabel, global_refresh_result_signal
+from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 
 
 class DemoWindow:

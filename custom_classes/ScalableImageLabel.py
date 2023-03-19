@@ -6,7 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from CustomSignal import CustomSignal
+from custom_classes.CustomSignal import CustomSignal
 from floodFill import floodFill, qtpixmap_to_cvimg, cvimg_to_qtimg
 from pylivewire_master.gui import ImageWin
 from processing.stamp import findStamp
