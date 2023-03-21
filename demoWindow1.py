@@ -26,6 +26,7 @@ class DemoWindow:
         # self.initTabBar()
 
         self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
+        self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget, self.ui.matchStackedWidget]
 
         # highlight the groupbox corresponding to the selected image label
         global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
@@ -47,7 +48,7 @@ class DemoWindow:
         self.ui.originImage1.setAlignment(QtCore.Qt.AlignCenter)
         self.ui.originImage1.setObjectName("originImage1")
         self.ui.originImgHLayout1 = QHBoxLayout()
-        self.ui.originImgHLayout1.addWidget(self.ui.originImage1, stretch=1, alignment=Qt.AlignCenter)
+        self.ui.originImgHLayout1.addWidget(self.ui.originImage1)
         originGroupBox1.setLayout(self.ui.originImgHLayout1)
 
         originGroupBox2 = self.ui.originGroupBox2
@@ -55,7 +56,7 @@ class DemoWindow:
         self.ui.originImage2.setAlignment(QtCore.Qt.AlignCenter)
         self.ui.originImage2.setObjectName("originImage2")
         self.ui.originImgHLayout2 = QHBoxLayout()
-        self.ui.originImgHLayout2.addWidget(self.ui.originImage2, stretch=1, alignment=Qt.AlignCenter)
+        self.ui.originImgHLayout2.addWidget(self.ui.originImage2)
         originGroupBox2.setLayout(self.ui.originImgHLayout2)
 
         # Load custom image label
@@ -95,6 +96,9 @@ class DemoWindow:
                                                   self.onToolBtnClicked(_, self.imageLabels[self.selectedImgNum]))
         self.toolGroup.buttonReleased[int].connect(lambda:
                                                    self.onToolBtnReleased(self.imageLabels[self.selectedImgNum]))
+
+        self.ui.originImage1.clicked.connect(lambda: self.onLabelSwitched(1))
+        self.ui.originImage2.clicked.connect(lambda: self.onLabelSwitched(2))
 
     def initTabBar(self):  # Tri-layer attributes tab bar on the right side
         primaryTabs = ["形状", "墨色", "笔法", "纹理"]
@@ -156,19 +160,21 @@ class DemoWindow:
     def onLabelSwitched(self, index: int):
         print(f"Working image label switched to groupbox {index}")
         self.selectedImgNum = index - 1
+        for sw in self.stackedWidgets:
+            sw.setCurrentIndex(index-1)
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
             self.ui.imageLabel1.isSelected = True
             self.ui.imageLabel2.isSelected = False
-            self.ui.image1GroupBox.setStyleSheet("QGroupBox {border: 3px solid blue;}")
-            self.ui.image2GroupBox.setStyleSheet("")
+            self.ui.originGroupBox1.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+            self.ui.originGroupBox2.setStyleSheet("")
         elif index == 2:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum
             self.ui.imageLabel1.isSelected = False
             self.ui.imageLabel2.isSelected = True
-            self.ui.image1GroupBox.setStyleSheet("")
-            self.ui.image2GroupBox.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+            self.ui.originGroupBox1.setStyleSheet("")
+            self.ui.originGroupBox2.setStyleSheet("QGroupBox {border: 3px solid blue;}")
 
     def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
         selectedImageLb.runWhenToolReleased()
