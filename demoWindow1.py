@@ -37,9 +37,9 @@ class DemoWindow:
 
     def refreshResultImage(self, resultImg: QPixmap, labelNum):
         if labelNum == 1:
-            self.ui.resultImage1.setPixmap(resultImg)
+            self.ui.imageLabel1.setPixmap(resultImg)
         elif labelNum == 2:
-            self.ui.resultImage2.setPixmap(resultImg)
+            self.ui.imageLabel2.setPixmap(resultImg)
 
     def initImageLabels(self):
         # Load custom clickable origin image label

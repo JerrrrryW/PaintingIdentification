@@ -59,8 +59,15 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             pass
 
         elif self.toolIndex == 1:  # squareCut
+            if self.toolIndex == 1 and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
+                img_org = qtpixmap_to_cvimg(self.scaledImg)
+                cut_y = self.rect[1] - self.singleOffset.y()
+                cut_x = self.rect[0] - self.singleOffset.x()
+                img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
+                self.scaledImg = QPixmap(cvimg_to_qtimg(img_mini))
+                self.singleOffset = QPoint(self.rect[0], self.rect[1])
+
             self.rect = None  # 重置矩形框
-            # bondedImageLb.scaledImg = bondedImageLb.imgPixmap
             self.repaint()
 
         elif self.toolIndex == 2:  # freeCut
@@ -179,13 +186,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             print("鼠标左键松开")  # 响应测试语句
             print("Moved to:", self.singleOffset)
 
-            if self.toolIndex == 1 and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
-                img_org = qtpixmap_to_cvimg(self.scaledImg)
-                cut_y = self.rect[1] - self.singleOffset.y()
-                cut_x = self.rect[0] - self.singleOffset.x()
-                img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
-                resultImg = QPixmap(cvimg_to_qtimg(img_mini))
-                global_refresh_result_signal.change_result_image.emit(resultImg, pressedImageLabelNum)
+
 
         # elif event.button() == Qt.RightButton:  # 右键释放
         #     self.singleOffset = QPoint(0, 0)  # 置为初值
