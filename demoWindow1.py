@@ -25,8 +25,11 @@ class DemoWindow:
         self.initClickedBtnConnection()
         # self.initTabBar()
 
+        self.originImages = [None, None]  # to store the origin images
         self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
-        self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget, self.ui.matchStackedWidget]
+        self.originLabels = [self.ui.originImage1, self.ui.originImage2]  # to access the label faster
+        self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget,
+                               self.ui.matchStackedWidget]
 
         # highlight the groupbox corresponding to the selected image label
         global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
@@ -89,8 +92,8 @@ class DemoWindow:
 
     def initClickedBtnConnection(self):
         # image file uploading
-        self.ui.selectBtn1.clicked.connect(lambda: self.openImgAndShow(self.ui.originImage1, self.ui.imageLabel1))
-        self.ui.selectBtn2.clicked.connect(lambda: self.openImgAndShow(self.ui.originImage2, self.ui.imageLabel2))
+        self.ui.selectBtn1.clicked.connect(lambda: self.openImgAndShow(1))
+        self.ui.selectBtn2.clicked.connect(lambda: self.openImgAndShow(2))
         self.ui.resetBtn.clicked.connect(self.resetBtnClicked)
 
         self.toolGroup.buttonPressed[int].connect(lambda _:  # [int] 指定了信号传递的为触发的按钮id
@@ -104,8 +107,10 @@ class DemoWindow:
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]
         # Scale the image to fit within the size of imageLabel
-        if not self.original_jpg.isNull():
-            scaled_jpg = self.original_jpg.scaled(imageLabel.size(), QtCore.Qt.KeepAspectRatio)
+        if not self.originImages[self.selectedImgNum].isNull():
+            scaled_jpg = self.originImages[self.selectedImgNum].scaled(imageLabel.size(),
+                                                                       QtCore.Qt.KeepAspectRatio,
+                                                                       QtCore.Qt.SmoothTransformation)
             print("scaled:", scaled_jpg.width(), scaled_jpg.height())
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(scaled_jpg)
@@ -117,7 +122,7 @@ class DemoWindow:
         print(f"Working image label switched to groupbox {index}")
         self.selectedImgNum = index - 1
         for sw in self.stackedWidgets:
-            sw.setCurrentIndex(index-1)
+            sw.setCurrentIndex(index - 1)
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
@@ -145,22 +150,25 @@ class DemoWindow:
         # selectedImageLb.runWhenToolReleased()
         pass
 
-    def openImgAndShow(self, imageLabel: ClickableLabel, displayLabel: scalableImageLabel):
-        self.imgName, imgType = QFileDialog.getOpenFileName(imageLabel, "打开图片", self.Path,
-                                                            "*.jpg;;*.png;;All Files(*)")
-        self.original_jpg = QPixmap(self.imgName)
-        print("origin:", self.original_jpg.width(), self.original_jpg.height())
-        print("label:", imageLabel.width(), imageLabel.height())
+    def openImgAndShow(self, imageIndex: int):
+        originLabel = self.originLabels[imageIndex - 1]
+        processingLabel = self.imageLabels[imageIndex - 1]
+        imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
+                                                       "*.jpg;;*.png;;All Files(*)")
+        original_jpg = QPixmap(imgName)
+        self.originImages[imageIndex - 1] = original_jpg
+        print("origin:", original_jpg.width(), original_jpg.height())
+        print("label:", originLabel.width(), originLabel.height())
 
-        # Scale the image to fit within the size of imageLabel
-        scaled_jpg = self.original_jpg.scaled(imageLabel.size(), QtCore.Qt.KeepAspectRatio)
+        # Scale the image to fit within the size of originLabel
+        scaled_jpg = original_jpg.scaled(originLabel.size(), QtCore.Qt.KeepAspectRatio)
 
         print("scaled:", scaled_jpg.width(), scaled_jpg.height())
 
         if not scaled_jpg.isNull():
-            imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            imageLabel.setPixmap(scaled_jpg)
-            displayLabel.setPixmap(self.original_jpg)
+            originLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            originLabel.setPixmap(scaled_jpg)
+            processingLabel.setPixmap(original_jpg)
 
     # def initTabBar(self):  # Tri-layer attributes tab bar on the right side
     #     primaryTabs = ["形状", "墨色", "笔法", "纹理"]
@@ -215,6 +223,7 @@ class DemoWindow:
     #         attrLayout.addWidget(valueLabel)
     #         attrLayout.addWidget(slideBar)
     #     return attrGroupBox
+
 
 if __name__ == '__main__':
     app = QApplication([])

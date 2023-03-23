@@ -416,7 +416,7 @@
            <item>
             <widget class="QStackedWidget" name="processingStackedWidget">
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="processingPage1"/>
              <widget class="QWidget" name="processingPage2"/>

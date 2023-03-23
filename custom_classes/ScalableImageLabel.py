@@ -59,12 +59,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             pass
 
         elif self.toolIndex == 1:  # squareCut
-            if self.toolIndex == 1 and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
+            if self.rect is not None and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
                 img_org = qtpixmap_to_cvimg(self.scaledImg)
                 cut_y = self.rect[1] - self.singleOffset.y()
                 cut_x = self.rect[0] - self.singleOffset.x()
                 img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
                 self.scaledImg = QPixmap(cvimg_to_qtimg(img_mini))
+                self.imgPixmap = self.scaledImg
                 self.singleOffset = QPoint(self.rect[0], self.rect[1])
 
             self.rect = None  # 重置矩形框
