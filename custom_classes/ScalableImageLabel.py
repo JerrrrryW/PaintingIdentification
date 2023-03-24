@@ -32,8 +32,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
-        resultImg = floodFill(col, row, qPixmapImage)
-        global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
+        resultImg_cv, oriImgMixed = floodFill(col, row, qPixmapImage)
+        # global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
+        # show result image
+        self.scaledImgTemp = self.scaledImg
+        self.scaledImg = QPixmap(cvimg_to_qtimg(oriImgMixed))
+        self.repaint()
+        self.scaledImg = self.scaledImgTemp
 
     def runWhenToolSelected(self):  # 当工具栏某一工具被选中时立刻执行
         if self.toolIndex == 0:  # floodFill

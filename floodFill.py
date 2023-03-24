@@ -1,5 +1,4 @@
 import cv2
-import cv2 as cv
 import imutils
 import numpy as np
 from PyQt5.QtCore import qDebug
@@ -28,11 +27,11 @@ def floodFill(col, row, qPixmapImage: QPixmap):
     img_copy = img_org.copy()  # 会覆盖原图
 
     # 3.执行处理
-    cv.floodFill(img_copy, img_mask, seed_point, new_val, lower_diff, up_diff,
-                 flags=4 | (255 << 8) | cv.FLOODFILL_FIXED_RANGE)  # 模式 4连通 + 255白色 + 区域计算
+    cv2.floodFill(img_copy, img_mask, seed_point, new_val, lower_diff, up_diff,
+                 flags=4 | (255 << 8) | cv2.FLOODFILL_FIXED_RANGE)  # 模式 4连通 + 255白色 + 区域计算
 
     # 4.提取轮廓
-    img_mask = img_mask[1:h, 1:w]  # 还原mask大小
+    img_mask = img_mask[1:h+1, 1:w+1]  # 还原mask大小
     cnt = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnt = imutils.grab_contours(cnt)
     if len(cnt) == 1:
@@ -40,18 +39,16 @@ def floodFill(col, row, qPixmapImage: QPixmap):
     else:
         print("Error: Detector find more than one contours!")
     img_mini = img_org[y_min:y_max, x_min:x_max]
+    img_mini = img_mini.astype(np.uint8)
 
-    # 显示结果
-    # cv.imshow("img_mask", img_mask)
-    # cv.imshow("img_org", img_org)
-    # cv.imshow("img_result", img_mini)
+    # highlight original image with mask
+    white_pixels = np.where(img_mask == 255)
+    img_mixed = img_org.copy()
+    img_mixed[white_pixels] = 255
+    # cv2.imshow("img_result", img_mixed)
+    #
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
-    # focus_image = cv.bitwise_and(img_org, img_org, mask=img_mask)
-    # cv.imshow("focus_image",focus_image)
-    qt_img_mini = QPixmap(cvimg_to_qtimg(img_mini))
-
-    cv.waitKey()
-    cv.destroyAllWindows()
-
-    return qt_img_mini
+    return img_mini, img_mixed
 
