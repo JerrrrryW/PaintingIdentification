@@ -7,10 +7,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from custom_classes.CustomSignal import CustomSignal
-from floodFill import floodFill, qtpixmap_to_cvimg, cvimg_to_qtimg
+from floodFill import floodFill, qtpixmap_to_cvimg, cvImg_to_qtImg
 from pylivewire_master.gui import ImageWin
 from processing.stamp import findStamp
-from utils import drawOutRectgle
+from utils import drawOutRectgle, bgraImg_to_qtImg
 
 global_refresh_result_signal = CustomSignal()
 
@@ -18,7 +18,6 @@ global_refresh_result_signal = CustomSignal()
 class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel继承自QWidget
     def __init__(self, parent=None):
         super(scalableImageLabel, self).__init__(parent)
-        # self.resize(500, 500)  # 设定窗口大小(根据自己显示图片的大小，可更改)
 
         self.imgPixmap = QPixmap('input/painting2.jpg')  # 载入图片
         # self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
@@ -30,15 +29,18 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.toolIndex = -1  # 工具栏调用工具状态，0为当前未调用工具
         # self.isSelected = False
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
+        self.scaledImgTemp = None  # 用于存储临时缩放图
+        self.floodFillResult = None  # 用于存储floodFill结果
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
-        resultImg_cv, oriImgMixed = floodFill(col, row, qPixmapImage)
+        resultImg_bgra, oriImgMixed = floodFill(col, row, qPixmapImage)
         # global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
         # show result image
         self.scaledImgTemp = self.scaledImg
-        self.scaledImg = QPixmap(cvimg_to_qtimg(oriImgMixed))
+        self.scaledImg = QPixmap(cvImg_to_qtImg(oriImgMixed))
         self.repaint()
         self.scaledImg = self.scaledImgTemp
+        self.floodFillResult = QPixmap(bgraImg_to_qtImg(resultImg_bgra))
 
     def runWhenToolSelected(self):  # 当工具栏某一工具被选中时立刻执行
         if self.toolIndex == 0:  # floodFill
@@ -61,7 +63,9 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
 
     def runWhenToolReleased(self):  # 当工具栏选中的工具被释放时立刻执行
         if self.toolIndex == 0:  # floodFill
-            pass
+            self.scaledImg = self.floodFillResult  # 将floodFill结果显示在label上
+            self.imgPixmap = self.scaledImg
+            self.repaint()
 
         elif self.toolIndex == 1:  # squareCut
             if self.rect is not None and self.rect[2] != 0 and self.rect[3] != 0:  # square cut
@@ -69,7 +73,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 cut_y = self.rect[1] - self.singleOffset.y()
                 cut_x = self.rect[0] - self.singleOffset.x()
                 img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
-                self.scaledImg = QPixmap(cvimg_to_qtimg(img_mini))
+                self.scaledImg = QPixmap(cvImg_to_qtImg(img_mini))
                 self.imgPixmap = self.scaledImg
                 self.singleOffset = QPoint(self.rect[0], self.rect[1])
 
@@ -157,7 +161,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                     if dist >= 0:  # 如果是
                         print(f"Clicked on contour {i}")  # 打印轮廓的下标
                         x_min, x_max, y_min, y_max = drawOutRectgle(contour)
-                        img_mini = QPixmap(cvimg_to_qtimg(qtpixmap_to_cvimg(self.scaledImg)[y_min:y_max, x_min:x_max]))
+                        img_mini = QPixmap(cvImg_to_qtImg(qtpixmap_to_cvimg(self.scaledImg)[y_min:y_max, x_min:x_max]))
                         global_refresh_result_signal.change_result_image.emit(img_mini, pressedImageLabelNum)
                         break
                     print("Clicked outside of any contour")  # 如果没有点击在任何轮廓内

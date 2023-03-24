@@ -4,7 +4,7 @@ import imutils
 import numpy as np
 from PyQt5.QtGui import QPixmap
 
-from utils import qtpixmap_to_cvimg, drawOutRectgle, cvimg_to_qtimg
+from utils import qtpixmap_to_cvimg, drawOutRectgle, cvImg_to_qtImg
 
 
 # if __name__ == "__main__":
@@ -70,7 +70,7 @@ def findStamp(imgInput: QPixmap):
         print(savePath + str(i)+".jpg")
 
     # cv2.imshow("img with rectangle", img)
-    imgOutput = QPixmap(cvimg_to_qtimg(img))
+    imgOutput = QPixmap(cvImg_to_qtImg(img))
 
 
     cv2.waitKey(0)

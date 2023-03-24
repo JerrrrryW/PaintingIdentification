@@ -15,15 +15,22 @@ def qtpixmap_to_cvimg(qtpixmap):
     return result
 
 
-def cvimg_to_qtimg(cvimg):
-
+def cvImg_to_qtImg(cvimg):
     height, width, depth = cvimg.shape
     cvimg = cv2.cvtColor(cvimg, cv2.COLOR_BGR2RGB)
     cvimg = QImage(cvimg.data, width, height, width * depth, QImage.Format_RGB888)
 
     return cvimg
 
-def drawOutRectgle(cont, img = None, isdrawing=False):
+
+def bgraImg_to_qtImg(cv_img):
+    h, w, c = cv_img.shape
+    bytes_per_line = c * w
+    q_img = QImage(cv_img.data, w, h, bytes_per_line, QImage.Format_ARGB32)
+    return q_img
+
+
+def drawOutRectgle(cont, img=None, isdrawing=False):
     # 最小外接正矩形————用于计算轮廓内每个像素灰度值(去除 矩形-外轮廓)
     cnt = cont
     st_x, st_y, width, height = cv2.boundingRect(cnt)  # 获取外接正矩形的xy
