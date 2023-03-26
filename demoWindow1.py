@@ -1,4 +1,5 @@
 import os
+import sys
 
 import PyQt5.QtCore
 from PyQt5 import uic
@@ -115,7 +116,7 @@ class DemoWindow:
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(scaled_jpg)
         else:
-            pass
+            self.showToastMessage("Please select an image first!")
 
         # Reset the tool selection
         self.ui.moveBtn.setChecked(True)
@@ -171,6 +172,12 @@ class DemoWindow:
             originLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             originLabel.setPixmap(scaled_jpg)
             processingLabel.setPixmap(original_jpg)
+
+    def showToastMessage(self, message: str):
+        msgBox = QMessageBox(parent=self.ui)
+        msgBox.setText(message)
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.show()
 
     # def initTabBar(self):  # Tri-layer attributes tab bar on the right side
     #     primaryTabs = ["形状", "墨色", "笔法", "纹理"]
