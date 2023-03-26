@@ -107,13 +107,15 @@ class DemoWindow:
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]
         # Scale the image to fit within the size of imageLabel
-        if not self.originImages[self.selectedImgNum].isNull():
+        if self.originImages[self.selectedImgNum] is not None:
             scaled_jpg = self.originImages[self.selectedImgNum].scaled(imageLabel.size(),
                                                                        QtCore.Qt.KeepAspectRatio,
                                                                        QtCore.Qt.SmoothTransformation)
             print("scaled:", scaled_jpg.width(), scaled_jpg.height())
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(scaled_jpg)
+        else:
+            pass
 
         # Reset the tool selection
         self.ui.moveBtn.setChecked(True)
