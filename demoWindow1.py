@@ -119,6 +119,8 @@ class DemoWindow:
             self.showToastMessage("Please select an image first!")
 
         # Reset the tool selection
+        self.toolGroup.setExclusive(False)
+        self.toolGroup.setExclusive(True)
         self.ui.moveBtn.setChecked(True)
 
     def onLabelSwitched(self, index: int):
