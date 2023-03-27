@@ -89,8 +89,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             pass
 
         elif self.toolIndex == 3:  # aiSensor
-            self.scaledImg = self.scaledImgTemp
-            self.repaint()
+            pass
 
     '''重载绘图: 动态绘图'''
 
@@ -166,8 +165,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                     if dist >= 0:  # 如果是
                         print(f"Clicked on contour {i}")  # 打印轮廓的下标
                         x_min, x_max, y_min, y_max = drawOutRectgle(contour)
-                        img_mini = QPixmap(cvImg_to_qtImg(qtpixmap_to_cvimg(self.scaledImg)[y_min:y_max, x_min:x_max]))
-                        global_refresh_result_signal.change_result_image.emit(img_mini, pressedImageLabelNum)
+                        img_mini = QPixmap(cvImg_to_qtImg(qtpixmap_to_cvimg(self.imgPixmap)[y_min:y_max, x_min:x_max]))
+                        # global_refresh_result_signal.change_result_image.emit(img_mini, pressedImageLabelNum)
+                        # show the result image
+                        self.scaledImg = img_mini
+                        self.imgPixmap = self.scaledImg
+                        self.singleOffset = QPoint(x_min + self.singleOffset.x(), y_min + self.singleOffset.y())  # 更新偏移值
+                        self.repaint()
                         break
                     print("Clicked outside of any contour")  # 如果没有点击在任何轮廓内
 
