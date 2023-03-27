@@ -53,7 +53,11 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.freeCutWindow = ImageWin(self.scaledImg)
             self.freeCutWindow.setMouseTracking(True)
             self.freeCutWindow.setWindowTitle('Livewire Demo')
-            self.freeCutWindow.show()
+            self.freeCutWindow.exec_()
+            # get result image from freeCutWindow and show it
+            self.scaledImg = self.freeCutWindow.cropped_image
+            self.imgPixmap = self.scaledImg
+            self.repaint()
 
         elif self.toolIndex == 3:  # aiSensor
             self.scaledImgTemp = self.scaledImg

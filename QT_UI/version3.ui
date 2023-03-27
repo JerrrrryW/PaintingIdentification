@@ -60,7 +60,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="resetBtn">
+       <widget class="QPushButton" name="resetBtn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -96,12 +96,6 @@
         </property>
         <property name="checkable">
          <bool>true</bool>
-        </property>
-        <property name="popupMode">
-         <enum>QToolButton::InstantPopup</enum>
-        </property>
-        <property name="autoRaise">
-         <bool>false</bool>
         </property>
        </widget>
       </item>

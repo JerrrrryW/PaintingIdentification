@@ -8,6 +8,7 @@ A crappy GUI for intelligent scissors/livewire with
 from __future__ import division
 import time
 import cv2
+import numpy as np
 from PyQt5 import QtGui, QtCore, QtWidgets
 from threading import Thread
 
@@ -15,8 +16,10 @@ from PyQt5.QtGui import QPixmap, QPainter
 
 from floodFill import qtpixmap_to_cvimg
 from pylivewire_master.livewire import Livewire
+from utils import extract_object, bgraImg_to_qtImg
 
-class ImageWin(QtWidgets.QWidget):
+
+class ImageWin(QtWidgets.QDialog):
     def __init__(self, img: QPixmap):
         super(ImageWin, self).__init__()
         self.setupUi(img)
@@ -25,6 +28,7 @@ class ImageWin(QtWidgets.QWidget):
         self.seed = None
         self.path_map = {}
         self.path = []
+        self.cropped_image = None  # save the cropped image for returning
         
     def setupUi(self, img):
         self.hbox = QtWidgets.QVBoxLayout(self)
@@ -40,7 +44,7 @@ class ImageWin(QtWidgets.QWidget):
         self.lw = Livewire(self.cv2_image)
         self.w, self.h = self.image.width(), self.image.height()
         
-        self.canvas = QtWidgets.QLabel(self)
+        self.canvas = QtWidgets.QLabel(self)  #
         self.canvas.setMouseTracking(True)
         self.canvas.setPixmap(self.image)
         
@@ -69,29 +73,30 @@ class ImageWin(QtWidgets.QWidget):
             p = y, x
             seed = self.seed
             
-            # Export bitmap
+            # Export bitmap and close window
             if event.buttons() == QtCore.Qt.MidButton:
-                filepath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save image audio to', '', '*.bmp\n*.jpg\n*.png')
-                image = self.image.copy()
-                
-                draw = QPainter()
-                draw.begin(image)
-                draw.setPen(QtCore.Qt.blue)
-                if self.path_map:
-                    while p != seed:
-                        draw.drawPoint(p[1], p[0])
-                        for q in self.lw._get_neighbors(p):
-                            draw.drawPoint(q[1], q[0])
-                        p = self.path_map[p]
-                if self.path:
-                    draw.setPen(QtCore.Qt.green)
-                    for p in self.path:
-                        draw.drawPoint(p[1], p[0])
-                        for q in self.lw._get_neighbors(p):
-                            draw.drawPoint(q[1], q[0])
-                draw.end()
-                
-                image.save(filepath, quality=100)
+                path = [(col, row) for row, col in self.path]  # convert to (x, y) format
+                mask = np.zeros(self.cv2_image.shape[:2], np.uint8)
+                cv2.fillPoly(mask, np.int32([path]), 255)  # fill the path with white
+                # cv2.imshow('mask', mask)
+                # cv2.waitKey(0)
+                self.cv2_image[mask == 0] = 255  # set background to white
+
+                # Find bounding rectangle of path
+                min_x = min(p[1] for p in self.path)
+                max_x = max(p[1] for p in self.path)
+                min_y = min(p[0] for p in self.path)
+                max_y = max(p[0] for p in self.path)
+
+                # extract selected img with transparency and Crop image to bounding rectangle
+                extracted_img_bgra = extract_object(self.cv2_image, mask)
+                self.cropped_image = QPixmap(bgraImg_to_qtImg(extracted_img_bgra))
+
+                # Save and return cropped image
+                # filepath, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save image audio to', '',
+                #                                                     '*.jpg\n*.bmp\n*.png')
+                self.cropped_image.save('./output/freeCut_result.jpg', quality=100)
+                self.close()
             
             else:
                 self.seed = p
