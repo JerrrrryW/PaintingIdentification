@@ -1,4 +1,5 @@
 import cv2
+import imutils
 import numpy as np
 from PyQt5.QtGui import QImage
 
@@ -42,3 +43,29 @@ def drawOutRectgle(cont, img=None, isdrawing=False):
     x_min, x_max, y_min, y_max = st_x, st_x + width, st_y, st_y + height  # 矩形四顶点
     # 通过每一个最小外接正矩形(四个顶点坐标)，判断矩形内累加坐标像素的灰度值，除去小于阈值的像素(在轮廓外)
     return x_min, x_max, y_min, y_max
+
+
+def extract_object(img_org, img_mask):
+    """
+    提取掩码图像生成的透明背景的对象图
+    :param img_org: 原始图像
+    :param img_mask: 掩码图像
+    :return: 提取的对象图，BGRA颜色空间
+    """
+
+    # 寻找轮廓
+    cnt = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnt = imutils.grab_contours(cnt)
+
+    if len(cnt) == 1:
+        # 绘制矩形框
+        x_min, x_max, y_min, y_max = drawOutRectgle(cnt[0])
+        # 获取掩码区域并生成BGRA对象图
+        img_mixed = cv2.bitwise_and(img_org, img_org, mask=img_mask)
+        img_mini = img_mixed[y_min:y_max, x_min:x_max]
+        img_mini = img_mini.astype(np.uint8)
+        img_mini = cv2.cvtColor(img_mini, cv2.COLOR_BGR2BGRA)
+        img_mini[..., 3] = cv2.bitwise_and(img_mask[y_min:y_max, x_min:x_max], img_mask[y_min:y_max, x_min:x_max])
+        return img_mini
+    else:
+        print("Error: Detector find more than one contours!")

@@ -5,7 +5,7 @@ from PyQt5.QtCore import qDebug
 from PyQt5.QtGui import *
 import sys
 
-from utils import qtpixmap_to_cvimg, cvImg_to_qtImg, drawOutRectgle
+from utils import qtpixmap_to_cvimg, cvImg_to_qtImg, drawOutRectgle, extract_object
 
 
 def floodFill(col, row, qPixmapImage: QPixmap):
@@ -32,19 +32,7 @@ def floodFill(col, row, qPixmapImage: QPixmap):
 
     # 4.提取轮廓
     img_mask = img_mask[1:h+1, 1:w+1]  # 还原mask大小
-    cnt = cv2.findContours(img_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnt = imutils.grab_contours(cnt)
-    if len(cnt) == 1:
-        x_min, x_max, y_min, y_max = drawOutRectgle(cnt[0])
-        img_mixed = cv2.bitwise_and(img_org, img_org, mask=img_mask)
-        img_mini = img_mixed[y_min:y_max, x_min:x_max]
-        img_mini = img_mini.astype(np.uint8)
-
-        # 将img_mini转换为BGRA颜色空间，并使用img_mask设置alpha通道
-        img_mini = cv2.cvtColor(img_mini, cv2.COLOR_BGR2BGRA)
-        img_mini[..., 3] = cv2.bitwise_and(img_mask[y_min:y_max, x_min:x_max], img_mask[y_min:y_max, x_min:x_max])
-    else:
-        print("Error: Detector find more than one contours!")
+    img_mini = extract_object(img_org, img_mask)  # 提取对象图
 
     # cv2.imshow("img_result", img_mixed)
     #
