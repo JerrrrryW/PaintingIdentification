@@ -32,12 +32,7 @@ class ImageWin(QtWidgets.QDialog):
         
     def setupUi(self, img):
         self.hbox = QtWidgets.QVBoxLayout(self)
-        
-        # Load and initialize image
-        # self.image_path = ''
-        # while self.image_path == '':
-        #     self.image_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, '', '', '(*.bmp *.jpg *.png)')
-        # self.image = QPixmap(self.image_path)
+
         self.image = img
         # self.cv2_image = cv2.imread(str(self.image_path))
         self.cv2_image = qtpixmap_to_cvimg(img)
@@ -50,10 +45,40 @@ class ImageWin(QtWidgets.QDialog):
         
         self.status_bar = QtWidgets.QStatusBar(self)
         self.status_bar.showMessage('Left click to set a seed')
-        
+
+        # add a button to finish the path
+        self.finish_button = QtWidgets.QPushButton('Finish', self)
+        self.finish_button.clicked.connect(self.finishPathAndExport)
+
         self.hbox.addWidget(self.canvas)
         self.hbox.addWidget(self.status_bar)
+        self.hbox.addWidget(self.finish_button)
         self.setLayout(self.hbox)
+
+    # Export bitmap and close window
+    def finishPathAndExport(self):
+        path = [(col, row) for row, col in self.path]  # convert to (x, y) format
+        mask = np.zeros(self.cv2_image.shape[:2], np.uint8)
+        cv2.fillPoly(mask, np.int32([path]), 255)  # fill the path with white
+        # cv2.imshow('mask', mask)
+        # cv2.waitKey(0)
+        self.cv2_image[mask == 0] = 255  # set background to white
+
+        # Find bounding rectangle of path
+        min_x = min(p[1] for p in self.path)
+        max_x = max(p[1] for p in self.path)
+        min_y = min(p[0] for p in self.path)
+        max_y = max(p[0] for p in self.path)
+
+        # extract selected img with transparency and Crop image to bounding rectangle
+        extracted_img_bgra = extract_object(self.cv2_image, mask)
+        self.cropped_image = QPixmap(bgraImg_to_qtImg(extracted_img_bgra))
+
+        # Save and return cropped image
+        # filepath, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save image audio to', '',
+        #                                                     '*.jpg\n*.bmp\n*.png')
+        self.cropped_image.save('./output/freeCut_result.jpg', quality=100)
+        self.close()
     
     def mousePressEvent(self, event):            
         if self.seed_enabled:
@@ -75,28 +100,7 @@ class ImageWin(QtWidgets.QDialog):
             
             # Export bitmap and close window
             if event.buttons() == QtCore.Qt.MidButton:
-                path = [(col, row) for row, col in self.path]  # convert to (x, y) format
-                mask = np.zeros(self.cv2_image.shape[:2], np.uint8)
-                cv2.fillPoly(mask, np.int32([path]), 255)  # fill the path with white
-                # cv2.imshow('mask', mask)
-                # cv2.waitKey(0)
-                self.cv2_image[mask == 0] = 255  # set background to white
-
-                # Find bounding rectangle of path
-                min_x = min(p[1] for p in self.path)
-                max_x = max(p[1] for p in self.path)
-                min_y = min(p[0] for p in self.path)
-                max_y = max(p[0] for p in self.path)
-
-                # extract selected img with transparency and Crop image to bounding rectangle
-                extracted_img_bgra = extract_object(self.cv2_image, mask)
-                self.cropped_image = QPixmap(bgraImg_to_qtImg(extracted_img_bgra))
-
-                # Save and return cropped image
-                # filepath, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save image audio to', '',
-                #                                                     '*.jpg\n*.bmp\n*.png')
-                self.cropped_image.save('./output/freeCut_result.jpg', quality=100)
-                self.close()
+                self.finishPathAndExport()
             
             else:
                 self.seed = p
