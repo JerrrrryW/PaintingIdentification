@@ -534,7 +534,7 @@
              <property name="currentIndex">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="matchPage1">
+             <widget class="QWidget" name="matchPage1_1">
               <widget class="QLabel" name="label_4">
                <property name="geometry">
                 <rect>
@@ -549,7 +549,8 @@
                </property>
               </widget>
              </widget>
-             <widget class="QWidget" name="matchPage2">
+             <widget class="QWidget" name="matchPage1_2"/>
+             <widget class="QWidget" name="matchPage2_1">
               <widget class="QLabel" name="label_3">
                <property name="geometry">
                 <rect>
@@ -564,6 +565,7 @@
                </property>
               </widget>
              </widget>
+             <widget class="QWidget" name="matchPage2_2"/>
             </widget>
            </item>
           </layout>
