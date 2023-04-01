@@ -22,10 +22,12 @@ class DemoWindow:
         self.selectedImgNum = 1  # 0,1,2   0 means no img label selected
         self.selectedToolNum = -1  # -1,0,1,2,3   -1 means default moving mode
         self.selectedFeatureNum = 0  # 0,1,2..   0 means no feature selected
+        self.featureItems = ["erode", "dilate", "open", "close", "gradient", "tophat", "blackhat"]  # sample
 
         self.initImageLabels()
         self.initToolBar()
         self.initClickedBtnConnection()
+        self.initFeatureMenu()
         # self.initTabBar()
 
         self.originImages = [None, None]  # to store the origin images
@@ -36,6 +38,7 @@ class DemoWindow:
         self.stampLists = [self.ui.stampList1, self.ui.stampList2]
 
         self.onLabelSwitched(1)  # set default selected image label
+
         # # highlight the groupbox corresponding to the selected image label
         # global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
         # # show the processing result images on corresponding labels
@@ -107,6 +110,17 @@ class DemoWindow:
         # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
         self.ui.inscriptionBtn.clicked.connect(lambda: self.featureBtnClicked(1))
 
+    def initFeatureMenu(self):
+        menu = QMenu(self.ui.featuresBtn)
+        mapper = QSignalMapper(self.ui.featuresBtn)
+        # 遍历列表创建下拉菜单项并绑定槽函数
+        for i, item in enumerate(self.featureItems):
+            action = menu.addAction(item)
+            mapper.setMapping(action, i+3)
+            action.triggered.connect(mapper.map)
+        mapper.mapped[int].connect(self.featureBtnClicked)
+        self.ui.featuresBtn.setMenu(menu)
+
     def initStampList(self, listWidget: QListWidget):
         listWidget.clear()
         listWidget.setEnabled(True)
@@ -132,6 +146,7 @@ class DemoWindow:
 
     def featureBtnClicked(self, featureNum: int):
         self.selectedFeatureNum = featureNum
+        print(f"feature button clicked:{featureNum}")
         if featureNum == 2:
             self.initStampList(self.stampLists[self.selectedImgNum - 1])
         self.ui.matchStackedWidget.setCurrentIndex(2 * (self.selectedImgNum - 1) + self.selectedFeatureNum - 1)  # switch to stamp list page of the selected image
