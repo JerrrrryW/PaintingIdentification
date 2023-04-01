@@ -506,6 +506,9 @@
             <property name="text">
              <string>印章</string>
             </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -539,7 +542,10 @@
                <item>
                 <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>matchPage1</string>
+                  <string>题款匹配部分1</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -557,7 +563,10 @@
                <item>
                 <widget class="QLabel" name="label_3">
                  <property name="text">
-                  <string>matchPage2</string>
+                  <string>题款匹配部分2</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -566,7 +575,14 @@
              <widget class="QWidget" name="matchPage2_2">
               <layout class="QVBoxLayout" name="verticalLayout_8">
                <item>
-                <widget class="QListWidget" name="stampList2"/>
+                <widget class="QListWidget" name="stampList2">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>

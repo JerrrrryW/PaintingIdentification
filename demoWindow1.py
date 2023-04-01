@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 
 import PyQt5.QtCore
@@ -20,7 +21,7 @@ class DemoWindow:
         self.toolGroup = QButtonGroup()
         self.selectedImgNum = 1  # 0,1,2   0 means no img label selected
         self.selectedToolNum = -1  # -1,0,1,2,3   -1 means default moving mode
-        self.selectedFeatureNum = -1  # -1,0,1,2..   -1 means no feature selected
+        self.selectedFeatureNum = 0  # 0,1,2..   0 means no feature selected
 
         self.initImageLabels()
         self.initToolBar()
@@ -103,24 +104,37 @@ class DemoWindow:
         self.ui.originImage2.clicked.connect(lambda: self.onLabelSwitched(2))
 
         self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(2))
-        # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', -1))  # reset the selected feature
+        # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
+        self.ui.inscriptionBtn.clicked.connect(lambda: self.featureBtnClicked(1))
 
     def initStampList(self, listWidget: QListWidget):
-        listWidget.setWordWrap(True)
+        listWidget.clear()
+        listWidget.setEnabled(True)
         listWidget.setFlow(QListWidget.TopToBottom)
         listWidget.setResizeMode(QListWidget.Adjust)
-
+        # listWidget.setStyleSheet("background-color:transparent")
         for i in range(10):
             item = QListWidgetItem(listWidget)
             stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
-            item.setSizeHint(QtCore.QSize(listWidget.width(), listWidget.height() / 4))
+            item.setSizeHint(QtCore.QSize(listWidget.width(), int(listWidget.height() / 4)))
+
+            # generate a sample stamp info TODO: link the dataset here
+            stampImg = QPixmap('input\\painting2_stamp.jpg')  # .scaled(stampListUi.stampImgLabel.size(), QtCore.Qt.KeepAspectRatio)
+            stampListUi.stampImgLabel.setPixmap(stampImg)
+            sourceImg = QPixmap('input\\painting2.jpg')  # .scaled(stampListUi.sourceImgLabel.size(), QtCore.Qt.KeepAspectRatio)
+            stampListUi.sourceImgLabel.setPixmap(sourceImg)
+            stampListUi.titleLabel.setText("Title " + str(i+1))
+            ranPercent = random.randint(0, 100)
+            stampListUi.percentage.setText(str(ranPercent) + "%")
+            stampListUi.percentageBar.setValue(ranPercent)
+
             listWidget.setItemWidget(item, stampListUi)
 
     def featureBtnClicked(self, featureNum: int):
-        self.selectedFeatureNum = featureNum - 1
+        self.selectedFeatureNum = featureNum
         if featureNum == 2:
             self.initStampList(self.stampLists[self.selectedImgNum - 1])
-        self.ui.matchStackedWidget.setCurrentIndex(2 * (self.selectedImgNum - 1) + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+        self.ui.matchStackedWidget.setCurrentIndex(2 * (self.selectedImgNum - 1) + self.selectedFeatureNum - 1)  # switch to stamp list page of the selected image
 
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]
@@ -142,12 +156,12 @@ class DemoWindow:
 
     def onLabelSwitched(self, index: int):
         print(f"Working image label switched to groupbox {index}")
-        self.selectedImgNum = index - 1
+        self.selectedImgNum = index
         for sw in self.stackedWidgets:
             if sw is not self.ui.matchStackedWidget:
                 sw.setCurrentIndex(index - 1)
             else:
-                sw.setCurrentIndex(2 * (index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
+                sw.setCurrentIndex(2 * (index - 1) + self.selectedFeatureNum - 1)  # switch to the corresponding feature page
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
