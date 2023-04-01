@@ -32,12 +32,12 @@ def floodFill(col, row, qPixmapImage: QPixmap):
 
     # 4.提取轮廓
     img_mask = img_mask[1:h+1, 1:w+1]  # 还原mask大小
-    img_mini = extract_object(img_org, img_mask)  # 提取对象图
+    img_mini, (x, y) = extract_object(img_org, img_mask)  # 提取对象图 + 坐标
 
     # cv2.imshow("img_result", img_mixed)
     #
     # cv2.waitKey()
     # cv2.destroyAllWindows()
 
-    return img_mini, img_copy
+    return img_mini, img_copy, (x, y)
 

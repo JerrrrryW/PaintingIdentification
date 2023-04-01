@@ -8,4 +8,6 @@ class CustomSignal(QObject):
     change_result_image = pyqtSignal(QPixmap, int)
     # Highlight the corresponding GroupBox
     highlight_selected_box = pyqtSignal(int)
+    # Refresh the tool bar
+    refresh_tool_bar = pyqtSignal()
 

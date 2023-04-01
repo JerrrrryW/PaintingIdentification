@@ -66,6 +66,6 @@ def extract_object(img_org, img_mask):
         img_mini = img_mini.astype(np.uint8)
         img_mini = cv2.cvtColor(img_mini, cv2.COLOR_BGR2BGRA)
         img_mini[..., 3] = cv2.bitwise_and(img_mask[y_min:y_max, x_min:x_max], img_mask[y_min:y_max, x_min:x_max])
-        return img_mini
+        return img_mini, (x_min, y_min)
     else:
         print("Error: Detector find more than one contours!")

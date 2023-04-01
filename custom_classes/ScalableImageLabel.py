@@ -34,7 +34,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.floodFillResult = None  # 用于存储floodFill结果
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
-        resultImg_bgra, oriImgMixed = floodFill(col, row, qPixmapImage)
+        resultImg_bgra, oriImgMixed, (x, y) = floodFill(col, row, qPixmapImage)
         # global_refresh_result_signal.change_result_image.emit(resultImg, resultLabelNum)
         # show result image
         self.scaledImgTemp = self.scaledImg
@@ -42,6 +42,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.repaint()
         self.scaledImg = self.scaledImgTemp
         self.floodFillResult = QPixmap(bgraImg_to_qtImg(resultImg_bgra))
+        self.rect = QPoint(x, y)
 
     def runWhenToolSelected(self):  # 当工具栏某一工具被选中时立刻执行
         if self.toolIndex == 0:  # floodFill
@@ -55,11 +56,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.freeCutWindow.setMouseTracking(True)
             self.freeCutWindow.setWindowTitle('Livewire Demo')
             self.freeCutWindow.exec_()
+            global_refresh_result_signal.refresh_tool_bar.emit()
             # get result image from freeCutWindow and show it
             if self.freeCutWindow.cropped_image is not None:
                 self.scaledImg = self.freeCutWindow.cropped_image
                 self.imgPixmap = self.scaledImg
                 self.repaint()
+            self.freeCutWindow.destroy()
 
         elif self.toolIndex == 3:  # aiSensor
             self.scaledImgTemp = self.scaledImg
@@ -71,6 +74,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         if self.toolIndex == 0:  # floodFill
             self.scaledImg = self.floodFillResult  # 将floodFill结果显示在label上
             self.imgPixmap = self.scaledImg
+            self.singleOffset = self.rect  # 将偏移值设置为floodFill结果的起点坐标
+            self.rect = None
             self.repaint()
 
         elif self.toolIndex == 1:  # squareCut
