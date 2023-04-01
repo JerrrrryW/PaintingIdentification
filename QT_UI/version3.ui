@@ -483,7 +483,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="inscriptionBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -491,12 +491,12 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>提款</string>
+             <string>题款</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_2">
+           <widget class="QPushButton" name="stampBtn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -517,7 +517,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>Multiple Features</string>
             </property>
            </widget>
           </item>
@@ -532,40 +532,44 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>0</number>
+              <number>3</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
-              <widget class="QLabel" name="label_4">
-               <property name="geometry">
-                <rect>
-                 <x>350</x>
-                 <y>510</y>
-                 <width>121</width>
-                 <height>24</height>
-                </rect>
-               </property>
-               <property name="text">
-                <string>matchPage1</string>
-               </property>
-              </widget>
+              <layout class="QVBoxLayout" name="verticalLayout_2">
+               <item>
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>matchPage1</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
-             <widget class="QWidget" name="matchPage1_2"/>
+             <widget class="QWidget" name="matchPage1_2">
+              <layout class="QVBoxLayout" name="verticalLayout_7">
+               <item>
+                <widget class="QListWidget" name="stampList1"/>
+               </item>
+              </layout>
+             </widget>
              <widget class="QWidget" name="matchPage2_1">
-              <widget class="QLabel" name="label_3">
-               <property name="geometry">
-                <rect>
-                 <x>350</x>
-                 <y>510</y>
-                 <width>121</width>
-                 <height>24</height>
-                </rect>
-               </property>
-               <property name="text">
-                <string>matchPage2</string>
-               </property>
-              </widget>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QLabel" name="label_3">
+                 <property name="text">
+                  <string>matchPage2</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
-             <widget class="QWidget" name="matchPage2_2"/>
+             <widget class="QWidget" name="matchPage2_2">
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QListWidget" name="stampList2"/>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>

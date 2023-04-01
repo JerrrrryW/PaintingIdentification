@@ -18,8 +18,9 @@ class DemoWindow:
         self.ui = uic.loadUi('QT_UI\\version3.ui')
 
         self.toolGroup = QButtonGroup()
-        self.selectedImgNum = 0  # 0,1,2   0 means no img label selected
+        self.selectedImgNum = 1  # 0,1,2   0 means no img label selected
         self.selectedToolNum = -1  # -1,0,1,2,3   -1 means default moving mode
+        self.selectedFeatureNum = -1  # -1,0,1,2..   -1 means no feature selected
 
         self.initImageLabels()
         self.initToolBar()
@@ -31,19 +32,15 @@ class DemoWindow:
         self.originLabels = [self.ui.originImage1, self.ui.originImage2]  # to access the label faster
         self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget,
                                self.ui.matchStackedWidget]
+        self.stampLists = [self.ui.stampList1, self.ui.stampList2]
 
-        # highlight the groupbox corresponding to the selected image label
-        global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
-        # show the processing result images on corresponding labels
-        global_refresh_result_signal.change_result_image.connect(self.refreshResultImage)
+        self.onLabelSwitched(1)  # set default selected image label
+        # # highlight the groupbox corresponding to the selected image label
+        # global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
+        # # show the processing result images on corresponding labels
+        # global_refresh_result_signal.change_result_image.connect(self.refreshResultImage)
 
         self.Path = os.getcwd()
-
-    def refreshResultImage(self, resultImg: QPixmap, labelNum):
-        if labelNum == 1:
-            self.ui.imageLabel1.setPixmap(resultImg)
-        elif labelNum == 2:
-            self.ui.imageLabel2.setPixmap(resultImg)
 
     def initImageLabels(self):
         # Load custom clickable origin image label
@@ -105,6 +102,26 @@ class DemoWindow:
         self.ui.originImage1.clicked.connect(lambda: self.onLabelSwitched(1))
         self.ui.originImage2.clicked.connect(lambda: self.onLabelSwitched(2))
 
+        self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(2))
+        # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', -1))  # reset the selected feature
+
+    def initStampList(self, listWidget: QListWidget):
+        listWidget.setWordWrap(True)
+        listWidget.setFlow(QListWidget.TopToBottom)
+        listWidget.setResizeMode(QListWidget.Adjust)
+
+        for i in range(10):
+            item = QListWidgetItem(listWidget)
+            stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
+            item.setSizeHint(QtCore.QSize(listWidget.width(), listWidget.height() / 4))
+            listWidget.setItemWidget(item, stampListUi)
+
+    def featureBtnClicked(self, featureNum: int):
+        self.selectedFeatureNum = featureNum - 1
+        if featureNum == 2:
+            self.initStampList(self.stampLists[self.selectedImgNum - 1])
+        self.ui.matchStackedWidget.setCurrentIndex(2 * (self.selectedImgNum - 1) + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]
         # Scale the image to fit within the size of imageLabel
@@ -127,7 +144,10 @@ class DemoWindow:
         print(f"Working image label switched to groupbox {index}")
         self.selectedImgNum = index - 1
         for sw in self.stackedWidgets:
-            sw.setCurrentIndex(index - 1)
+            if sw is not self.ui.matchStackedWidget:
+                sw.setCurrentIndex(index - 1)
+            else:
+                sw.setCurrentIndex(2 * (index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
@@ -174,6 +194,12 @@ class DemoWindow:
             originLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             originLabel.setPixmap(scaled_jpg)
             processingLabel.setPixmap(original_jpg)
+
+    def refreshResultImage(self, resultImg: QPixmap, labelNum):
+        if labelNum == 1:
+            self.ui.imageLabel1.setPixmap(resultImg)
+        elif labelNum == 2:
+            self.ui.imageLabel2.setPixmap(resultImg)
 
     def showToastMessage(self, message: str):
         msgBox = QMessageBox(parent=self.ui)
