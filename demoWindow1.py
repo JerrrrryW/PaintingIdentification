@@ -48,7 +48,7 @@ class DemoWindow:
 
         self.Path = os.getcwd()
 
-    def initImageLabels(self):
+    def initImageLabels(self):  # load custom image processing labels
         # Load custom clickable origin image label
         originGroupBox1 = self.ui.originGroupBox1
         self.ui.originImage1 = ClickableLabel(originGroupBox1)

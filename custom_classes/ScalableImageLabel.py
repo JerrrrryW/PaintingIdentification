@@ -19,9 +19,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
     def __init__(self, parent=None):
         super(scalableImageLabel, self).__init__(parent)
 
-        self.imgPixmap = QPixmap('input/painting2.jpg')  # 载入图片
+        self.imgPixmap = QPixmap('icon/pls_select_paintings.png')  # 载入图片
         # self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
-        self.setText('SELECT A PAINTING TO PROCESS')
         self.scaledImg = self.imgPixmap
         self.singleOffset = QPoint(0, 0)  # 初始化偏移值
 
