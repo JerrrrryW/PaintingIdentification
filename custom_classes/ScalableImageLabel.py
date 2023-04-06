@@ -20,8 +20,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         super(scalableImageLabel, self).__init__(parent)
 
         self.imgPixmap = QPixmap('icon/pls_select_paintings.png')  # 载入图片
-        # self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
-        self.scaledImg = self.imgPixmap
+        self.scaledImg = self.imgPixmap.scaledToWidth(parent.width())  # 初始化缩放图
+        # self.scaledImg = self.imgPixmap
         self.singleOffset = QPoint(0, 0)  # 初始化偏移值
 
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
@@ -31,6 +31,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
         self.scaledImgTemp = None  # 用于存储临时缩放图
         self.floodFillResult = None  # 用于存储floodFill结果
+        # self.setPixmap(self.scaledImg)  # 显示图片
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
         resultImg_bgra, oriImgMixed, (x, y) = floodFill(col, row, qPixmapImage)
@@ -73,6 +74,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         if self.toolIndex == 0:  # floodFill
             self.scaledImg = self.floodFillResult  # 将floodFill结果显示在label上
             self.imgPixmap = self.scaledImg
+            print("new singleOffset:", self.rect)
             self.singleOffset = self.rect  # 将偏移值设置为floodFill结果的起点坐标
             self.rect = None
             self.repaint()
@@ -85,6 +87,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 img_mini = img_org[cut_y:cut_y + self.rect[3], cut_x:cut_x + self.rect[2]]
                 self.scaledImg = QPixmap(cvImg_to_qtImg(img_mini))
                 self.imgPixmap = self.scaledImg
+                print("new singleOffset:", self.rect)
                 self.singleOffset = QPoint(self.rect[0], self.rect[1])
 
             self.rect = None  # 重置矩形框
@@ -243,8 +246,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.repaint()  # 重绘
         else:  # 滚轮下滚
             print("鼠标中键下滚")  # 响应测试语句
-            self.scaledImg = self.imgPixmap.scaled(self.scaledImg.width() * (1 - scalingIndex),
-                                                   self.scaledImg.height() * (1 - scalingIndex))
+            self.scaledImg = self.imgPixmap.scaled(self.scaledImg.width() * (1 - scalingIndex), self.scaledImg.height() * (1 - scalingIndex))
             # newWidth = event.x() - (self.scaledImg.width() * (event.x() - self.singleOffset.x())) \
             #            / (self.scaledImg.width() + scalingIndex)
             # newHeight = event.y() - (self.scaledImg.height() * (event.y() - self.singleOffset.y())) \
