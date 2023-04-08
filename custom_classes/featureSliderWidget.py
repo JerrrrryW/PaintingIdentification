@@ -4,7 +4,7 @@ import sys
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QSlider, QPushButton, QLineEdit, QSizePolicy
 
 
-class SliderWidget(QtWidgets.QWidget):
+class featureSliderWidget(QtWidgets.QWidget):
     def __init__(self, name='feature', min_value=0, max_value=100, initial_value=50):
         super().__init__()
 
@@ -42,6 +42,6 @@ class SliderWidget(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = SliderWidget(name='力道' ,min_value=0, max_value=255, initial_value=128)
+    window = featureSliderWidget(name='力道', min_value=0, max_value=255, initial_value=128)
     window.show()
     sys.exit(app.exec_())

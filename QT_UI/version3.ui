@@ -347,7 +347,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="3,2">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,3,2">
         <property name="spacing">
@@ -536,7 +536,7 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>0</number>
+              <number>2</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -556,6 +556,13 @@
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <item>
                 <widget class="QListWidget" name="stampList1"/>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="matchPage1_3">
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <widget class="QListWidget" name="paramList1"/>
                </item>
               </layout>
              </widget>
@@ -584,6 +591,13 @@
                   <bool>false</bool>
                  </property>
                 </widget>
+               </item>
+              </layout>
+             </widget>
+             <widget class="QWidget" name="matchPage2_3">
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <widget class="QListWidget" name="paramList2"/>
                </item>
               </layout>
              </widget>
