@@ -13,6 +13,7 @@ from PyQt5.QtCore import *
 from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget
+from processing.feature.erode import erode
 
 
 def initFeatureList(listWidget: QListWidget, featureIndicator):
@@ -22,7 +23,7 @@ def initFeatureList(listWidget: QListWidget, featureIndicator):
     listWidget.setResizeMode(QListWidget.Adjust)
     for key in featureIndicator['params']:
         item = QListWidgetItem(listWidget)
-        item.setSizeHint(QtCore.QSize(listWidget.width(), int(listWidget.height() / len(featureIndicator['params']))))
+        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height()-10) / len(featureIndicator['params']))))
         itemWidget = featureSliderWidget(featureIndicator['params'][key]['name'],
                                          featureIndicator['params'][key]['min'],
                                          featureIndicator['params'][key]['max'],
@@ -39,7 +40,7 @@ def initStampList(listWidget: QListWidget):
     for i in range(10):
         item = QListWidgetItem(listWidget)
         stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
-        item.setSizeHint(QtCore.QSize(listWidget.width(), int(listWidget.height() / 4)))
+        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height()-10) / 4)))
 
         # generate a sample stamp info TODO: link the dataset here
         stampImg = QPixmap(
@@ -76,10 +77,12 @@ class DemoWindow:
             2: {
                 'name': 'erode',
                 'params': {
-                    'param1': {'name': 'kernel_size', 'min': 1, 'max': 10, 'initial': 3},
-                    'param2': {'name': 'num_iterations', 'min': 1, 'max': 50, 'initial': 12},
+                    'param1': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
+                    'param2': {'name': 'color iterations', 'min': 1, 'max': 50, 'initial': 12},
+                    'param3': {'name': 'new iterations', 'min': 1, 'max': 50, 'initial': 23}
                 }
             }
+
         }
 
         self.initImageLabels()
@@ -94,6 +97,7 @@ class DemoWindow:
         self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget,
                                self.ui.matchStackedWidget]
         self.stampLists = [self.ui.stampList1, self.ui.stampList2]
+        self.visualLabels = [self.ui.visualLabel1, self.ui.visualLabel2]
 
         self.onLabelSwitched(1)  # set default selected image label
 
@@ -190,6 +194,11 @@ class DemoWindow:
             initStampList(self.stampLists[self.selectedImgNum])
         elif featureNum == 2:  # erode
             initFeatureList(self.ui.paramList1, self.featureItems[featureNum])
+            image = self.imageLabels[self.selectedImgNum].scaledImg
+            erodedImg = erode(image,
+                              kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
+                              num_iterations=int(self.featureItems[featureNum]['params']['param1']['initial']))
+            self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
 
         self.ui.matchStackedWidget.setCurrentIndex(
             2 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
