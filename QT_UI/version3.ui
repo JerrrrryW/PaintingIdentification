@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>魔棒效果demo</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
@@ -438,8 +441,14 @@
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
             <widget class="QStackedWidget" name="visualizationStackedWidget">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="visualizationPage1">
               <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -536,7 +545,7 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>2</number>
+              <number>4</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -555,14 +564,22 @@
              <widget class="QWidget" name="matchPage1_2">
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <item>
-                <widget class="QListWidget" name="stampList1"/>
+                <widget class="QListWidget" name="stampList1">
+                 <property name="styleSheet">
+                  <string notr="true">background-color:transparent</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
              <widget class="QWidget" name="matchPage1_3">
               <layout class="QVBoxLayout" name="verticalLayout_11">
                <item>
-                <widget class="QListWidget" name="paramList1"/>
+                <widget class="QListWidget" name="paramList1">
+                 <property name="styleSheet">
+                  <string notr="true">background-color:transparent</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -590,6 +607,9 @@
                  <property name="autoFillBackground">
                   <bool>false</bool>
                  </property>
+                 <property name="styleSheet">
+                  <string notr="true">background-color:transparent</string>
+                 </property>
                 </widget>
                </item>
               </layout>
@@ -597,7 +617,11 @@
              <widget class="QWidget" name="matchPage2_3">
               <layout class="QVBoxLayout" name="verticalLayout_12">
                <item>
-                <widget class="QListWidget" name="paramList2"/>
+                <widget class="QListWidget" name="paramList2">
+                 <property name="styleSheet">
+                  <string notr="true">background-color:transparent</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>

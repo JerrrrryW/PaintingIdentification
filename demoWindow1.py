@@ -23,7 +23,8 @@ def initFeatureList(listWidget: QListWidget, featureIndicator):
     listWidget.setResizeMode(QListWidget.Adjust)
     for key in featureIndicator['params']:
         item = QListWidgetItem(listWidget)
-        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height()-10) / len(featureIndicator['params']))))
+        item.setSizeHint(
+            QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / len(featureIndicator['params']))))
         itemWidget = featureSliderWidget(featureIndicator['params'][key]['name'],
                                          featureIndicator['params'][key]['min'],
                                          featureIndicator['params'][key]['max'],
@@ -40,7 +41,7 @@ def initStampList(listWidget: QListWidget):
     for i in range(10):
         item = QListWidgetItem(listWidget)
         stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
-        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height()-10) / 4)))
+        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 4)))
 
         # generate a sample stamp info TODO: link the dataset here
         stampImg = QPixmap(
@@ -82,7 +83,6 @@ class DemoWindow:
                     'param3': {'name': 'new test param', 'min': 1, 'max': 50, 'initial': 23}
                 }
             }
-
         }
 
         self.initImageLabels()
@@ -98,6 +98,7 @@ class DemoWindow:
                                self.ui.matchStackedWidget]
         self.stampLists = [self.ui.stampList1, self.ui.stampList2]
         self.visualLabels = [self.ui.visualLabel1, self.ui.visualLabel2]
+        self.paramLists = [self.ui.paramList1, self.ui.paramList2]
 
         self.onLabelSwitched(1)  # set default selected image label
 
@@ -191,7 +192,7 @@ class DemoWindow:
         elif featureNum == 1:  # stamp
             initStampList(self.stampLists[self.selectedImgNum])
         elif featureNum == 2:  # erode
-            initFeatureList(self.ui.paramList1, self.featureItems[featureNum])
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             image = self.imageLabels[self.selectedImgNum].scaledImg
             erodedImg = erode(image,
                               kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
@@ -199,25 +200,18 @@ class DemoWindow:
             self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
 
         self.ui.matchStackedWidget.setCurrentIndex(
-            2 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+            (2 + len(
+                self.featureItems)) * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         if self.selectedFeatureNum == 2:
             image = self.imageLabels[self.selectedImgNum].scaledImg
-            erodedImg = None
-            changedParam = None
-            # find the changed param
-            for key in self.featureItems[self.selectedFeatureNum]['params'].keys():
-                if self.featureItems[self.selectedFeatureNum]['params'][key]['name'] == featureName:
-                    changedParam = {'name': featureName, 'initial': featureValue}
-                    break
-            # update the image according to the changed param
-            if changedParam['name'] == self.featureItems[self.selectedFeatureNum]['params']['param1']['name']:  # kernel_size_num
-                erodedImg = erode(image, kernel_size_num=int(changedParam['initial']),
-                                  num_iterations=int(self.featureItems[self.selectedFeatureNum]['params']['param2']['initial']))
-            elif changedParam['name'] == self.featureItems[self.selectedFeatureNum]['params']['param2']['name']:
-                erodedImg = erode(image, kernel_size_num=int(self.featureItems[self.selectedFeatureNum]['params']['param1']['initial']),
-                                  num_iterations=int(changedParam['initial']))
+            item1 = self.paramLists[self.selectedImgNum].item(0)
+            item2 = self.paramLists[self.selectedImgNum].item(1)
+            erodedImg = erode(image,
+                              kernel_size_num=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                              num_iterations=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
+
             if erodedImg is not None:
                 self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
 
@@ -252,7 +246,8 @@ class DemoWindow:
                 sw.setCurrentIndex(index - 1)
             else:
                 sw.setCurrentIndex(
-                    2 * (index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
+                    (2 + len(self.featureItems)) * (
+                                index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
