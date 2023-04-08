@@ -10,4 +10,6 @@ class CustomSignal(QObject):
     highlight_selected_box = pyqtSignal(int)
     # Refresh the tool bar
     refresh_tool_bar = pyqtSignal()
+    # Dynamically update processed result by the feature slider
+    update_processed_result = pyqtSignal(str, int)
 

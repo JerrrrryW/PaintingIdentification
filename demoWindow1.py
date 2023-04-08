@@ -12,7 +12,7 @@ from PyQt5.QtCore import *
 
 from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
-from custom_classes.featureSliderWidget import featureSliderWidget
+from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from processing.feature.erode import erode
 
 
@@ -79,7 +79,7 @@ class DemoWindow:
                 'params': {
                     'param1': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
                     'param2': {'name': 'color iterations', 'min': 1, 'max': 50, 'initial': 12},
-                    'param3': {'name': 'new iterations', 'min': 1, 'max': 50, 'initial': 23}
+                    'param3': {'name': 'new test param', 'min': 1, 'max': 50, 'initial': 23}
                 }
             }
 
@@ -101,12 +101,10 @@ class DemoWindow:
 
         self.onLabelSwitched(1)  # set default selected image label
 
-        # # highlight the groupbox corresponding to the selected image label
-        # global_refresh_result_signal.highlight_selected_box.connect(self.onLabelSwitched)
-        # # show the processing result images on corresponding labels
-        # global_refresh_result_signal.change_result_image.connect(self.refreshResultImage)
         # refresh the toolbar when signal received
         global_refresh_result_signal.refresh_tool_bar.connect(self.resetToolBar)
+        # refresh the result when signal received
+        grobal_update_processed_result.update_processed_result.connect(self.updateProcessedResultByFeature)
 
         self.Path = os.getcwd()
 
@@ -202,6 +200,26 @@ class DemoWindow:
 
         self.ui.matchStackedWidget.setCurrentIndex(
             2 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+
+    def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
+        if self.selectedFeatureNum == 2:
+            image = self.imageLabels[self.selectedImgNum].scaledImg
+            erodedImg = None
+            changedParam = None
+            # find the changed param
+            for key in self.featureItems[self.selectedFeatureNum]['params'].keys():
+                if self.featureItems[self.selectedFeatureNum]['params'][key]['name'] == featureName:
+                    changedParam = {'name': featureName, 'initial': featureValue}
+                    break
+            # update the image according to the changed param
+            if changedParam['name'] == self.featureItems[self.selectedFeatureNum]['params']['param1']['name']:  # kernel_size_num
+                erodedImg = erode(image, kernel_size_num=int(changedParam['initial']),
+                                  num_iterations=int(self.featureItems[self.selectedFeatureNum]['params']['param2']['initial']))
+            elif changedParam['name'] == self.featureItems[self.selectedFeatureNum]['params']['param2']['name']:
+                erodedImg = erode(image, kernel_size_num=int(self.featureItems[self.selectedFeatureNum]['params']['param1']['initial']),
+                                  num_iterations=int(changedParam['initial']))
+            if erodedImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
 
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]

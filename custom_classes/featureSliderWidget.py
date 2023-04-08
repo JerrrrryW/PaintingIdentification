@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QApplication
 import sys
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QSlider, QPushButton, QLineEdit, QSizePolicy
 
+from custom_classes.CustomSignal import CustomSignal
+
+grobal_update_processed_result = CustomSignal()
+
 
 class featureSliderWidget(QtWidgets.QWidget):
     def __init__(self, name='feature', min_value=0, max_value=100, initial_value=50):
@@ -26,18 +30,22 @@ class featureSliderWidget(QtWidgets.QWidget):
 
     def _on_slider_value_changed(self, value):
         self.value_label.setText(str(value))
+        grobal_update_processed_result.update_processed_result.emit(self.label.text(), value)
 
     def _on_value_label_editing_finished(self):
         value = int(self.value_label.text())
         self.slider.setValue(value)
+        grobal_update_processed_result.update_processed_result.emit(self.label.text(), value)
 
     def _on_increment_button_clicked(self):
         value = self.slider.value()
         self.slider.setValue(value + 1)
+        grobal_update_processed_result.update_processed_result.emit(self.label.text(), value)
 
     def _on_decrement_button_clicked(self):
         value = self.slider.value()
         self.slider.setValue(value - 1)
+        grobal_update_processed_result.update_processed_result.emit(self.label.text(), value)
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ def erode(qPixmapImage: QPixmap, kernel_size_num=3, start_color=(255, 255, 255),
 
     # 应用阈值函数来去除背景
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    cv2.imshow('thresh', thresh)
+    # cv2.imshow('thresh', thresh)
 
     # 定义腐蚀核
     kernel = np.ones(kernel_size, np.uint8)
@@ -32,7 +32,7 @@ def erode(qPixmapImage: QPixmap, kernel_size_num=3, start_color=(255, 255, 255),
         img[thresh > 0] = color
         i += 1
 
-    cv2.imshow('Eroded Image', img)
-    cv2.waitKey(0)
+    # cv2.imshow('Eroded Image', img)
+    # cv2.waitKey(0)
 
     return QPixmap(cvImg_to_qtImg(img))
