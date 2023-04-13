@@ -27,10 +27,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
         self.toolIndex = -1  # 工具栏调用工具状态，0为当前未调用工具
+        self.backgroundIndicator = {0: False, 1: True, 2: False, 3: True}  # 根据工具栏工具索引，判断结果图是否有背景
+        self.hasBackground = bool(True)  # 当前结果图是否有背景
         # self.isSelected = False
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
         self.scaledImgTemp = None  # 用于存储临时缩放图
         self.floodFillResult = None  # 用于存储floodFill结果
+
         # self.setPixmap(self.scaledImg)  # 显示图片
 
     def floodFillThreadFunc(self, col, row, qPixmapImage: QPixmap, resultLabelNum):
@@ -56,9 +59,9 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.freeCutWindow.setMouseTracking(True)
             self.freeCutWindow.setWindowTitle('Livewire Demo')
             self.freeCutWindow.exec_()
-            global_refresh_result_signal.refresh_tool_bar.emit()
             # get result image from freeCutWindow and show it
             if self.freeCutWindow.cropped_image is not None:
+                global_refresh_result_signal.refresh_tool_bar.emit()
                 self.scaledImg = self.freeCutWindow.cropped_image
                 self.imgPixmap = self.scaledImg
                 self.repaint()
@@ -70,8 +73,13 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.repaint()
             pass
 
+        if self.toolIndex != -1:
+            self.hasBackground = self.backgroundIndicator[self.toolIndex]  # 根据工具栏工具索引，判断结果图是否有背景
+
     def runWhenToolReleased(self):  # 当工具栏选中的工具被释放时立刻执行
         if self.toolIndex == 0:  # floodFill
+            if self.floodFillResult is None:  # 未进行floodFill操作
+                return
             self.scaledImg = self.floodFillResult  # 将floodFill结果显示在label上
             self.imgPixmap = self.scaledImg
             print("new singleOffset:", self.rect)
@@ -169,7 +177,9 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
 
             elif self.toolIndex == 3:  # aiSensor
                 for i, contour in enumerate(self.cnts):  # 遍历轮廓列表
-                    dist = cv2.pointPolygonTest(contour, (event.x()-self.singleOffset.x(), event.y()-self.singleOffset.y()), False)  # 判断鼠标的坐标是否在轮廓内
+                    dist = cv2.pointPolygonTest(contour,
+                                                (event.x() - self.singleOffset.x(), event.y() - self.singleOffset.y()),
+                                                False)  # 判断鼠标的坐标是否在轮廓内
                     if dist >= 0:  # 如果是
                         print(f"Clicked on contour {i}")  # 打印轮廓的下标
                         x_min, x_max, y_min, y_max = drawOutRectgle(contour)
@@ -178,7 +188,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                         # show the result image
                         self.scaledImg = img_mini
                         self.imgPixmap = self.scaledImg
-                        self.singleOffset = QPoint(x_min + self.singleOffset.x(), y_min + self.singleOffset.y())  # 更新偏移值
+                        self.singleOffset = QPoint(x_min + self.singleOffset.x(),
+                                                   y_min + self.singleOffset.y())  # 更新偏移值
                         self.repaint()
                         break
                     print("Clicked outside of any contour")  # 如果没有点击在任何轮廓内
@@ -213,8 +224,6 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             print("鼠标左键松开")  # 响应测试语句
             print("Moved to:", self.singleOffset)
 
-
-
         # elif event.button() == Qt.RightButton:  # 右键释放
         #     self.singleOffset = QPoint(0, 0)  # 置为初值
         #     self.scaledImg = self.imgPixmap.scaled(self.size())  # 置为初值
@@ -246,7 +255,8 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
             self.repaint()  # 重绘
         else:  # 滚轮下滚
             print("鼠标中键下滚")  # 响应测试语句
-            self.scaledImg = self.imgPixmap.scaled(self.scaledImg.width() * (1 - scalingIndex), self.scaledImg.height() * (1 - scalingIndex))
+            self.scaledImg = self.imgPixmap.scaled(self.scaledImg.width() * (1 - scalingIndex),
+                                                   self.scaledImg.height() * (1 - scalingIndex))
             # newWidth = event.x() - (self.scaledImg.width() * (event.x() - self.singleOffset.x())) \
             #            / (self.scaledImg.width() + scalingIndex)
             # newHeight = event.y() - (self.scaledImg.height() * (event.y() - self.singleOffset.y())) \

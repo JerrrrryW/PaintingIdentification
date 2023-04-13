@@ -85,6 +85,7 @@ class DemoWindow:
             }
         }
 
+
         self.initImageLabels()
         self.initToolBar()
         self.initClickedBtnConnection()
@@ -193,10 +194,11 @@ class DemoWindow:
             initStampList(self.stampLists[self.selectedImgNum])
         elif featureNum == 2:  # erode
             initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
-            image = self.imageLabels[self.selectedImgNum].scaledImg
-            erodedImg = erode(image,
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            erodedImg = erode(image, has_background=imageLabel.hasBackground,
                               kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
-                              num_iterations=int(self.featureItems[featureNum]['params']['param1']['initial']))
+                              num_iterations=int(self.featureItems[featureNum]['params']['param2']['initial']))
             self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
 
         self.ui.matchStackedWidget.setCurrentIndex(
@@ -205,10 +207,11 @@ class DemoWindow:
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         if self.selectedFeatureNum == 2:
-            image = self.imageLabels[self.selectedImgNum].scaledImg
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
-            erodedImg = erode(image,
+            erodedImg = erode(image, has_background=imageLabel.hasBackground,
                               kernel_size_num=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
                               num_iterations=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
@@ -232,6 +235,11 @@ class DemoWindow:
         self.toolGroup.setExclusive(False)
         self.toolGroup.setExclusive(True)
         self.ui.moveBtn.setChecked(True)
+
+        # Reset the visual label
+        self.visualLabels[self.selectedImgNum].clear()
+        self.visualLabels[self.selectedImgNum].setText("Visual Result " + str(self.selectedImgNum + 1))
+
 
     def resetToolBar(self):
         self.toolGroup.setExclusive(False)

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>魔棒效果demo</string>
+   <string>欢迎使用 CAPAT</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -448,14 +448,17 @@
               </sizepolicy>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="visualizationPage1">
               <layout class="QVBoxLayout" name="verticalLayout_10">
                <item>
                 <widget class="QLabel" name="visualLabel1">
                  <property name="text">
-                  <string>visualizationPage1</string>
+                  <string>Visual Result 1</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -466,7 +469,10 @@
                <item>
                 <widget class="QLabel" name="visualLabel2">
                  <property name="text">
-                  <string>visualizationPage2</string>
+                  <string>Visual Result 2</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>

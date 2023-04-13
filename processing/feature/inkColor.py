@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 
-img = cv2.imread('..\\..\\input\\painting2_cut.jpg', 0)
+img = cv2.imread('input\\painting1.jpg', 0)
 img2 = cv2.imread('false.png', 0)
 # hist是256x1数组，每个值对应于该图像中具有相应像素值的像素数
 hist = cv2.calcHist([img], [0], None, [256], [0, 256])
