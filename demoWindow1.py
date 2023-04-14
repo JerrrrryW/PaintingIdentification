@@ -14,6 +14,7 @@ from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from processing.feature.erode import erode
+from processing.feature.inkColor import multi_threshold_processing
 
 
 def initFeatureList(listWidget: QListWidget, featureIndicator):
@@ -74,17 +75,6 @@ class DemoWindow:
         self.selectedImgNum = -1  # -1,0,1   -1 means no img label selected
         self.selectedToolNum = -1  # -1,0,1,2,3   -1 means default moving mode
         self.selectedFeatureNum = 0  # 0,1...  0 means default page1
-        self.featureItems = {  # to store the feature items
-            2: {
-                'name': 'erode',
-                'params': {
-                    'param1': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
-                    'param2': {'name': 'color iterations', 'min': 1, 'max': 50, 'initial': 12},
-                    'param3': {'name': 'new test param', 'min': 1, 'max': 50, 'initial': 23}
-                }
-            }
-        }
-
 
         self.initImageLabels()
         self.initToolBar()
@@ -109,6 +99,195 @@ class DemoWindow:
         grobal_update_processed_result.update_processed_result.connect(self.updateProcessedResultByFeature)
 
         self.Path = os.getcwd()
+
+    def initFeatureMenu(self):
+        self.featureItems = {  # to store the feature items
+            2: {'name': '力度（erode）',
+                'params': {
+                    'param1': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
+                    'param2': {'name': 'color iterations', 'min': 2, 'max': 50, 'initial': 12},
+                }
+            },
+            3: {'name': '墨色',
+                'params': {
+                    'num_thresholds': {'name': 'Number of Thresholds', 'min': 2, 'max': 10, 'initial': 3},
+                    'min_threshold': {'name': 'Minimum Threshold', 'min': 0, 'max': 255, 'initial': 0},
+                    'max_threshold': {'name': 'Maximum Threshold', 'min': 0, 'max': 255, 'initial': 255},
+                }
+            }
+        }
+
+        menu = QMenu(self.ui.featuresBtn)
+        mapper = QSignalMapper(self.ui.featuresBtn)
+        # 遍历列表创建下拉菜单项并绑定槽函数
+        for key in self.featureItems.keys():
+            action = menu.addAction(self.featureItems[key]['name'])
+            mapper.setMapping(action, key)
+            action.triggered.connect(mapper.map)
+        mapper.mapped[int].connect(self.featureBtnClicked)
+        self.ui.featuresBtn.setMenu(menu)
+
+    def featureBtnClicked(self, featureNum: int):
+        self.selectedFeatureNum = featureNum
+        print(f"feature button clicked:{featureNum}")
+        if featureNum == 0:  # OCR
+            pass
+        elif featureNum == 1:  # stamp
+            initStampList(self.stampLists[self.selectedImgNum])
+        elif featureNum == 2:  # erode
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            erodedImg = erode(image, has_background=imageLabel.hasBackground,
+                              kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
+                              num_iterations=int(self.featureItems[featureNum]['params']['param2']['initial']))
+            if erodedImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
+        elif featureNum == 3:  # ink color
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            inkColorImg = multi_threshold_processing(image,
+                                                     num_thresholds=int(self.featureItems[featureNum]['params']['num_thresholds']['initial']),
+                                                     min_threshold=int(self.featureItems[featureNum]['params']['min_threshold']['initial']),
+                                                     max_threshold=int(self.featureItems[featureNum]['params']['max_threshold']['initial']))
+            if inkColorImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(inkColorImg)
+
+        if featureNum <= 2:
+            self.ui.matchStackedWidget.setCurrentIndex(
+                3 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+        else:
+            self.ui.matchStackedWidget.setCurrentIndex(3 * self.selectedImgNum + 2)  # all features use the same page
+
+    def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
+        if self.selectedFeatureNum == 2:
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            item1 = self.paramLists[self.selectedImgNum].item(0)
+            item2 = self.paramLists[self.selectedImgNum].item(1)
+            erodedImg = erode(image, has_background=imageLabel.hasBackground,
+                              kernel_size_num=int(
+                                  self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                              num_iterations=int(
+                                  self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
+
+            if erodedImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
+        elif self.selectedFeatureNum == 3:
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            item1 = self.paramLists[self.selectedImgNum].item(0)
+            item2 = self.paramLists[self.selectedImgNum].item(1)
+            item3 = self.paramLists[self.selectedImgNum].item(2)
+            resultImg = multi_threshold_processing(image,
+                                        num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                                        min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()),
+                                        max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item3).value_label.text()))
+
+            if resultImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
+
+
+    def resetBtnClicked(self):
+        imageLabel = self.imageLabels[self.selectedImgNum]
+        # Scale the image to fit within the size of imageLabel
+        if self.originImages[self.selectedImgNum] is not None:
+            scaled_jpg = self.originImages[self.selectedImgNum].scaled(imageLabel.size(),
+                                                                       QtCore.Qt.KeepAspectRatio,
+                                                                       QtCore.Qt.SmoothTransformation)
+            print("scaled:", scaled_jpg.width(), scaled_jpg.height())
+            imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            imageLabel.setPixmap(scaled_jpg)
+        else:
+            self.showToastMessage("Please select an image first!")
+
+        # Reset the tool selection
+        self.toolGroup.setExclusive(False)
+        self.toolGroup.setExclusive(True)
+        self.ui.moveBtn.setChecked(True)
+
+        # Reset the visual label
+        self.visualLabels[self.selectedImgNum].clear()
+        self.visualLabels[self.selectedImgNum].setText("Visual Result " + str(self.selectedImgNum + 1))
+
+    def resetToolBar(self):
+        self.toolGroup.setExclusive(False)
+        self.toolGroup.setExclusive(True)
+        self.ui.moveBtn.setChecked(True)
+
+    def onLabelSwitched(self, index: int):
+        print(f"Working image label switched to groupbox {index}")
+        self.selectedImgNum = index - 1
+        for sw in self.stackedWidgets:
+            if sw is not self.ui.matchStackedWidget:
+                sw.setCurrentIndex(index - 1)
+            else:
+                sw.setCurrentIndex(
+                    (2 + len(self.featureItems)) * (
+                            index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
+        # the corresponding GroupBox to blue and the other groupboxes to grey
+        if index == 1:
+            self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
+            self.ui.imageLabel1.isSelected = True
+            self.ui.imageLabel2.isSelected = False
+            self.ui.originGroupBox1.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+            self.ui.originGroupBox2.setStyleSheet("")
+        elif index == 2:
+            self.ui.imageLabel1.toolIndex = self.selectedToolNum
+            self.ui.imageLabel1.isSelected = False
+            self.ui.imageLabel2.isSelected = True
+            self.ui.originGroupBox1.setStyleSheet("")
+            self.ui.originGroupBox2.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+
+    def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
+        selectedImageLb.runWhenToolReleased()
+        if clickedBtnID != 5:
+            selectedImageLb.toolIndex = self.selectedToolNum = clickedBtnID
+        else:
+            selectedImageLb.toolIndex = self.selectedToolNum = -1
+        selectedImageLb.runWhenToolSelected()
+
+    def onToolBtnReleased(self, selectedImageLb: scalableImageLabel):
+        # selectedImageLb.toolIndex = -1
+        # selectedImageLb.runWhenToolReleased()
+        pass
+
+    def openImgAndShow(self, imageIndex: int):
+        originLabel = self.originLabels[imageIndex - 1]
+        processingLabel = self.imageLabels[imageIndex - 1]
+        imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
+                                                       "*.jpg;;*.png;;All Files(*)")
+        original_jpg = QPixmap(imgName)
+        self.originImages[imageIndex - 1] = original_jpg
+        print("origin:", original_jpg.width(), original_jpg.height())
+        print("label:", originLabel.width(), originLabel.height())
+
+        # Scale the image to fit within the size of originLabel
+        scaled_jpg = original_jpg.scaled(originLabel.size(), QtCore.Qt.KeepAspectRatio)
+
+        print("scaled:", scaled_jpg.width(), scaled_jpg.height())
+
+        if not scaled_jpg.isNull():
+            originLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            originLabel.setPixmap(scaled_jpg)
+            processingLabel.setPixmap(original_jpg)
+
+    def refreshResultImage(self, resultImg: QPixmap, labelNum):
+        if labelNum == 1:
+            self.ui.imageLabel1.setPixmap(resultImg)
+        elif labelNum == 2:
+            self.ui.imageLabel2.setPixmap(resultImg)
+
+    def showToastMessage(self, message: str):
+        msgBox = QMessageBox(parent=self.ui)
+        msgBox.setText(message)
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.show()
+
+    '''
+    initialization of the UI widgets
+    '''
 
     def initImageLabels(self):  # load custom image processing labels
         # Load custom clickable origin image label
@@ -173,147 +352,6 @@ class DemoWindow:
         self.ui.inscriptionBtn.clicked.connect(lambda: self.featureBtnClicked(0))
         self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(1))
         # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
-
-    def initFeatureMenu(self):
-        menu = QMenu(self.ui.featuresBtn)
-        mapper = QSignalMapper(self.ui.featuresBtn)
-        # 遍历列表创建下拉菜单项并绑定槽函数
-        for key in self.featureItems.keys():
-            action = menu.addAction(self.featureItems[key]['name'])
-            mapper.setMapping(action, key)
-            action.triggered.connect(mapper.map)
-        mapper.mapped[int].connect(self.featureBtnClicked)
-        self.ui.featuresBtn.setMenu(menu)
-
-    def featureBtnClicked(self, featureNum: int):
-        self.selectedFeatureNum = featureNum
-        print(f"feature button clicked:{featureNum}")
-        if featureNum == 0:  # OCR
-            pass
-        elif featureNum == 1:  # stamp
-            initStampList(self.stampLists[self.selectedImgNum])
-        elif featureNum == 2:  # erode
-            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
-            erodedImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
-                              num_iterations=int(self.featureItems[featureNum]['params']['param2']['initial']))
-            self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
-
-        self.ui.matchStackedWidget.setCurrentIndex(
-            (2 + len(
-                self.featureItems)) * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
-
-    def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
-        if self.selectedFeatureNum == 2:
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
-            item1 = self.paramLists[self.selectedImgNum].item(0)
-            item2 = self.paramLists[self.selectedImgNum].item(1)
-            erodedImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                              num_iterations=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
-
-            if erodedImg is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
-
-    def resetBtnClicked(self):
-        imageLabel = self.imageLabels[self.selectedImgNum]
-        # Scale the image to fit within the size of imageLabel
-        if self.originImages[self.selectedImgNum] is not None:
-            scaled_jpg = self.originImages[self.selectedImgNum].scaled(imageLabel.size(),
-                                                                       QtCore.Qt.KeepAspectRatio,
-                                                                       QtCore.Qt.SmoothTransformation)
-            print("scaled:", scaled_jpg.width(), scaled_jpg.height())
-            imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            imageLabel.setPixmap(scaled_jpg)
-        else:
-            self.showToastMessage("Please select an image first!")
-
-        # Reset the tool selection
-        self.toolGroup.setExclusive(False)
-        self.toolGroup.setExclusive(True)
-        self.ui.moveBtn.setChecked(True)
-
-        # Reset the visual label
-        self.visualLabels[self.selectedImgNum].clear()
-        self.visualLabels[self.selectedImgNum].setText("Visual Result " + str(self.selectedImgNum + 1))
-
-
-    def resetToolBar(self):
-        self.toolGroup.setExclusive(False)
-        self.toolGroup.setExclusive(True)
-        self.ui.moveBtn.setChecked(True)
-
-    def onLabelSwitched(self, index: int):
-        print(f"Working image label switched to groupbox {index}")
-        self.selectedImgNum = index - 1
-        for sw in self.stackedWidgets:
-            if sw is not self.ui.matchStackedWidget:
-                sw.setCurrentIndex(index - 1)
-            else:
-                sw.setCurrentIndex(
-                    (2 + len(self.featureItems)) * (
-                                index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
-        # the corresponding GroupBox to blue and the other groupboxes to grey
-        if index == 1:
-            self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
-            self.ui.imageLabel1.isSelected = True
-            self.ui.imageLabel2.isSelected = False
-            self.ui.originGroupBox1.setStyleSheet("QGroupBox {border: 3px solid blue;}")
-            self.ui.originGroupBox2.setStyleSheet("")
-        elif index == 2:
-            self.ui.imageLabel1.toolIndex = self.selectedToolNum
-            self.ui.imageLabel1.isSelected = False
-            self.ui.imageLabel2.isSelected = True
-            self.ui.originGroupBox1.setStyleSheet("")
-            self.ui.originGroupBox2.setStyleSheet("QGroupBox {border: 3px solid blue;}")
-
-    def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
-        selectedImageLb.runWhenToolReleased()
-        if clickedBtnID != 5:
-            selectedImageLb.toolIndex = self.selectedToolNum = clickedBtnID
-        else:
-            selectedImageLb.toolIndex = self.selectedToolNum = -1
-        selectedImageLb.runWhenToolSelected()
-
-    def onToolBtnReleased(self, selectedImageLb: scalableImageLabel):
-        # selectedImageLb.toolIndex = -1
-        # selectedImageLb.runWhenToolReleased()
-        pass
-
-    def openImgAndShow(self, imageIndex: int):
-        originLabel = self.originLabels[imageIndex - 1]
-        processingLabel = self.imageLabels[imageIndex - 1]
-        imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
-                                                       "*.jpg;;*.png;;All Files(*)")
-        original_jpg = QPixmap(imgName)
-        self.originImages[imageIndex - 1] = original_jpg
-        print("origin:", original_jpg.width(), original_jpg.height())
-        print("label:", originLabel.width(), originLabel.height())
-
-        # Scale the image to fit within the size of originLabel
-        scaled_jpg = original_jpg.scaled(originLabel.size(), QtCore.Qt.KeepAspectRatio)
-
-        print("scaled:", scaled_jpg.width(), scaled_jpg.height())
-
-        if not scaled_jpg.isNull():
-            originLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            originLabel.setPixmap(scaled_jpg)
-            processingLabel.setPixmap(original_jpg)
-
-    def refreshResultImage(self, resultImg: QPixmap, labelNum):
-        if labelNum == 1:
-            self.ui.imageLabel1.setPixmap(resultImg)
-        elif labelNum == 2:
-            self.ui.imageLabel2.setPixmap(resultImg)
-
-    def showToastMessage(self, message: str):
-        msgBox = QMessageBox(parent=self.ui)
-        msgBox.setText(message)
-        msgBox.setStandardButtons(QMessageBox.Ok)
-        msgBox.show()
 
     # def initTabBar(self):  # Tri-layer attributes tab bar on the right side
     #     primaryTabs = ["形状", "墨色", "笔法", "纹理"]

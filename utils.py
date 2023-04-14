@@ -16,7 +16,7 @@ def qtpixmap_to_cvimg(qtpixmap):
     return result
 
 
-def cvImg_to_qtImg(cvimg):
+def cvImg_to_qtImg(cvimg):  # only for 3 channel image
     height, width, depth = cvimg.shape
     cvimg = cv2.cvtColor(cvimg, cv2.COLOR_BGR2RGB)
     cvimg = QImage(cvimg.data, width, height, width * depth, QImage.Format_RGB888)
