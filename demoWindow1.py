@@ -15,6 +15,7 @@ from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from processing.feature.erode import erode
 from processing.feature.inkColor import multi_threshold_processing
+from processing.feature.paintingColor import extract_color
 from processing.feature.strength import sharpen_image
 
 
@@ -124,7 +125,14 @@ class DemoWindow:
                 'params': {
                     'alpha': {'name': 'sharp degree', 'min': 1, 'max': 30, 'initial': 10},
                 }
+            },
+            5: {'name': '画色',
+                'params': {
+                    'tolerance': {'name': 'Color Tolerance', 'min': 1, 'max': 50, 'initial': 10},
+                    'limit_number': {'name': 'Number of Colors', 'min': 1, 'max': 20, 'initial': 10},
+                }
             }
+
         }
 
         menu = QMenu(self.ui.featuresBtn)
@@ -143,37 +151,36 @@ class DemoWindow:
             return
         self.selectedFeatureNum = featureNum
         print(f"feature button clicked:{featureNum}")
+
+        initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
+        imageLabel = self.imageLabels[self.selectedImgNum]
+        image = imageLabel.scaledImg
+        resultImage = None
+
         if featureNum == 0:  # OCR
             pass
         elif featureNum == 1:  # stamp
             initStampList(self.stampLists[self.selectedImgNum])
         elif featureNum == 2:  # erode
-            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
-            erodedImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
-                              num_iterations=int(self.featureItems[featureNum]['params']['num_iterations']['initial']))
-            if erodedImg is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
+            resultImage = erode(image, has_background=imageLabel.hasBackground,
+                                kernel_size_num=int(self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
+                                num_iterations=int(self.featureItems[featureNum]['params']['num_iterations']['initial']))
         elif featureNum == 3:  # ink color
-            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
-            inkColorImg = multi_threshold_processing(image,
+            resultImage = multi_threshold_processing(image,
                                                      num_thresholds=int(self.featureItems[featureNum]['params']['num_thresholds']['initial']),
                                                      min_threshold=int(self.featureItems[featureNum]['params']['min_threshold']['initial']),
                                                      max_threshold=int(self.featureItems[featureNum]['params']['max_threshold']['initial']))
-            if inkColorImg is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(inkColorImg)
         elif featureNum == 4:  # global erode
-            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
-            sharpenImage = sharpen_image(image, alpha=float(self.featureItems[featureNum]['params']['alpha']['initial']))
-            if sharpenImage is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(sharpenImage)
+            resultImage = sharpen_image(image, alpha=float(self.featureItems[featureNum]['params']['alpha']['initial']))
+        elif featureNum == 5:  # extract color
+            resultImage = extract_color(image,
+                                        tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
+                                        limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
 
+        if resultImage is not None:
+            self.visualLabels[self.selectedImgNum].setPixmap(resultImage)
+
+        # switch to the corresponding page
         if featureNum <= 2:
             self.ui.matchStackedWidget.setCurrentIndex(
                 3 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
@@ -182,38 +189,37 @@ class DemoWindow:
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         resultImg = None
+        imageLabel = self.imageLabels[self.selectedImgNum]
+        image = imageLabel.scaledImg
         if self.selectedFeatureNum == 2:
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
             resultImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(
-                                  self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                              num_iterations=int(
-                                  self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
+                              kernel_size_num=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                              num_iterations=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
             if resultImg is not None:
                 self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
         elif self.selectedFeatureNum == 3:
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
             item3 = self.paramLists[self.selectedImgNum].item(2)
             resultImg = multi_threshold_processing(image,
-                                        num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                                        min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()),
-                                        max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item3).value_label.text()))
+                                                   num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                                                   min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()),
+                                                   max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item3).value_label.text()))
         elif self.selectedFeatureNum == 4:
-            imageLabel = self.imageLabels[self.selectedImgNum]
-            image = imageLabel.scaledImg
             item1 = self.paramLists[self.selectedImgNum].item(0)
             resultImg = sharpen_image(image, alpha=float(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()))
+        elif self.selectedFeatureNum == 5:
+            item1 = self.paramLists[self.selectedImgNum].item(0)
+            item2 = self.paramLists[self.selectedImgNum].item(1)
+            resultImg = extract_color(image,
+                                      tolerance=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                                      limit_number=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
         if resultImg is not None:
             self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
-
 
     def resetBtnClicked(self):
         imageLabel = self.imageLabels[self.selectedImgNum]

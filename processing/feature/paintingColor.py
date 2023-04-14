@@ -1,10 +1,15 @@
 import sys
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import extcolors
+from PIL import Image
+from PyQt5.QtGui import QPixmap
 
 from colormap import rgb2hex
+
+from utils import qtpixmap_to_cvimg
 
 
 def color_to_df(input):
@@ -21,10 +26,19 @@ def color_to_df(input):
     return df
 
 
-def exact_color(input_image, tolerance, limit_number):
+def extract_color(input_image: QPixmap, tolerance, limit_number):
+
+    # Assume you have a QPixmap object named pixmap
+    qimage = input_image.toImage()
+    # Convert the QImage to a NumPy array
+    numpy_image = np.array(qimage.bits().asarray(qimage.width() * qimage.height() * qimage.depth() // 8))
+    # Reshape the NumPy array to have the correct dimensions
+    numpy_image = numpy_image.reshape((qimage.height(), qimage.width(), qimage.depth() // 8))
+    # Convert the NumPy array to a PIL Image object
+    pil_image = Image.fromarray(numpy_image)
+
     # crate dataframe
-    img_url = input_image
-    colors_x = extcolors.extract_from_path(img_url, tolerance=tolerance, limit=limit_number)  # tolerance容差,limit颜色的数量
+    colors_x = extcolors.extract_from_image(pil_image, tolerance=tolerance, limit=limit_number)  # tolerance容差,limit颜色的数量
     df_color = color_to_df(colors_x)
 
     # df_color
@@ -52,4 +66,4 @@ def exact_color(input_image, tolerance, limit_number):
 
 if __name__ == '__main__':
     image_path = sys.argv[1]
-    exact_color(image_path, 12, 10)
+    extract_color(image_path, 12, 10)
