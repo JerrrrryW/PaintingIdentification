@@ -15,6 +15,7 @@ from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from processing.feature.erode import erode
 from processing.feature.inkColor import multi_threshold_processing
+from processing.feature.strength import sharpen_image
 
 
 def initFeatureList(listWidget: QListWidget, featureIndicator):
@@ -106,10 +107,10 @@ class DemoWindow:
 
     def initFeatureMenu(self):
         self.featureItems = {  # to store the feature items
-            2: {'name': '力度（erode）',
+            2: {'name': '力度（笔画）',
                 'params': {
-                    'param1': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
-                    'param2': {'name': 'color iterations', 'min': 2, 'max': 50, 'initial': 12},
+                    'kernel_size_num': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
+                    'num_iterations': {'name': 'color iterations', 'min': 2, 'max': 50, 'initial': 12},
                 }
             },
             3: {'name': '墨色',
@@ -117,6 +118,11 @@ class DemoWindow:
                     'num_thresholds': {'name': 'Number of Thresholds', 'min': 2, 'max': 10, 'initial': 3},
                     'min_threshold': {'name': 'Minimum Threshold', 'min': 0, 'max': 255, 'initial': 0},
                     'max_threshold': {'name': 'Maximum Threshold', 'min': 0, 'max': 255, 'initial': 255},
+                }
+            },
+            4: {'name': '力度（全局）',
+                'params': {
+                    'alpha': {'name': 'sharp degree', 'min': 1, 'max': 30, 'initial': 10},
                 }
             }
         }
@@ -146,8 +152,8 @@ class DemoWindow:
             imageLabel = self.imageLabels[self.selectedImgNum]
             image = imageLabel.scaledImg
             erodedImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(self.featureItems[featureNum]['params']['param1']['initial']),
-                              num_iterations=int(self.featureItems[featureNum]['params']['param2']['initial']))
+                              kernel_size_num=int(self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
+                              num_iterations=int(self.featureItems[featureNum]['params']['num_iterations']['initial']))
             if erodedImg is not None:
                 self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
         elif featureNum == 3:  # ink color
@@ -160,6 +166,13 @@ class DemoWindow:
                                                      max_threshold=int(self.featureItems[featureNum]['params']['max_threshold']['initial']))
             if inkColorImg is not None:
                 self.visualLabels[self.selectedImgNum].setPixmap(inkColorImg)
+        elif featureNum == 4:  # global erode
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            sharpenImage = sharpen_image(image, alpha=float(self.featureItems[featureNum]['params']['alpha']['initial']))
+            if sharpenImage is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(sharpenImage)
 
         if featureNum <= 2:
             self.ui.matchStackedWidget.setCurrentIndex(
@@ -168,19 +181,20 @@ class DemoWindow:
             self.ui.matchStackedWidget.setCurrentIndex(3 * self.selectedImgNum + 2)  # all features use the same page
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
+        resultImg = None
         if self.selectedFeatureNum == 2:
             imageLabel = self.imageLabels[self.selectedImgNum]
             image = imageLabel.scaledImg
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
-            erodedImg = erode(image, has_background=imageLabel.hasBackground,
+            resultImg = erode(image, has_background=imageLabel.hasBackground,
                               kernel_size_num=int(
                                   self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
                               num_iterations=int(
                                   self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
-            if erodedImg is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(erodedImg)
+            if resultImg is not None:
+                self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
         elif self.selectedFeatureNum == 3:
             imageLabel = self.imageLabels[self.selectedImgNum]
             image = imageLabel.scaledImg
@@ -191,9 +205,14 @@ class DemoWindow:
                                         num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
                                         min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()),
                                         max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item3).value_label.text()))
+        elif self.selectedFeatureNum == 4:
+            imageLabel = self.imageLabels[self.selectedImgNum]
+            image = imageLabel.scaledImg
+            item1 = self.paramLists[self.selectedImgNum].item(0)
+            resultImg = sharpen_image(image, alpha=float(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()))
 
-            if resultImg is not None:
-                self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
+        if resultImg is not None:
+            self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
 
 
     def resetBtnClicked(self):

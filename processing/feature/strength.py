@@ -1,28 +1,44 @@
 import cv2
 import numpy as np
 
-moon = cv2.imread("true.png", 0) #读取时参数为0，顺便转化为灰度图
-row, column = moon.shape
-moon_f = np.copy(moon)
-moon_f = moon_f.astype("float") #整数转小数
+import cv2
+import numpy as np
+from PyQt5.QtGui import QPixmap, QImage
 
-gradient = np.zeros((row, column))
-
-for x in range(row - 1):
-    for y in range(column - 1):
-        gx = abs(moon_f[x + 1, y] - moon_f[x, y])
-        gy = abs(moon_f[x, y + 1] - moon_f[x, y])
-        gradient[x, y] = gx + gy
-
-sharp = moon_f + gradient
-sharp = np.where(sharp < 0, 0, np.where(sharp > 255, 255, sharp))
+from utils import qtpixmap_to_cvimg, cvImg_to_qtImg
 
 
-gradient = gradient.astype("uint8") #小数转0-255
-sharp = sharp.astype("uint8")
-cv2.imshow("moon", moon)
-cv2.imshow("gradient", gradient)
-cv2.imshow("sharp", sharp)
-cv2.waitKey()
+def sharpen_image(input_image:QPixmap, alpha = 10):
+    alpha = alpha / 10
+
+    # Read the input image
+    moon_f = qtpixmap_to_cvimg(input_image)
+
+    # Convert the image to grayscale
+    moon_f = cv2.cvtColor(moon_f, cv2.COLOR_BGR2GRAY)
+
+    # Compute the gradient of the image
+    gx = cv2.Sobel(moon_f, cv2.CV_64F, 1, 0, ksize=3)
+    gy = cv2.Sobel(moon_f, cv2.CV_64F, 0, 1, ksize=3)
+    gradient = cv2.convertScaleAbs(gx) + cv2.convertScaleAbs(gy)
+
+    # Apply the gradient to the image
+    sharp = cv2.addWeighted(moon_f, 1, gradient, alpha, 0)
+    sharp = np.where(sharp < 0, 0, np.where(sharp > 255, 255, sharp))
+
+    # Convert the image to uint8
+    sharp = sharp.astype("uint8")
+
+    cv2.imshow('gradient', gradient)
+
+    # sharp = cv2.cvtColor(sharp, cv2.COLOR_GRAY2BGR)
+
+    # Convert the image to QPixmap via QImage
+    height, width = sharp.shape
+    bytesPerLine = width
+    qimage = QImage(sharp.data, width, height, bytesPerLine, QImage.Format_Grayscale8)
+    qpixmap = QPixmap(qimage)
+
+    return qpixmap
 
 # https://blog.csdn.net/weixin_46263207/article/details/123309502
