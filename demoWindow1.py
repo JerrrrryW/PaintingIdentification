@@ -100,6 +100,10 @@ class DemoWindow:
 
         self.Path = os.getcwd()
 
+    ''' 
+    Initialization of features
+    '''
+
     def initFeatureMenu(self):
         self.featureItems = {  # to store the feature items
             2: {'name': '力度（erode）',
@@ -128,6 +132,9 @@ class DemoWindow:
         self.ui.featuresBtn.setMenu(menu)
 
     def featureBtnClicked(self, featureNum: int):
+        if self.originImages[self.selectedImgNum] is None:
+            self.showToastMessage("Please select an image first!", title="NO IMAGE SELECTED")
+            return
         self.selectedFeatureNum = featureNum
         print(f"feature button clicked:{featureNum}")
         if featureNum == 0:  # OCR
@@ -200,7 +207,7 @@ class DemoWindow:
             imageLabel.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             imageLabel.setPixmap(scaled_jpg)
         else:
-            self.showToastMessage("Please select an image first!")
+            self.showToastMessage("Please select an image first!", title="NO IMAGE SELECTED")
 
         # Reset the tool selection
         self.toolGroup.setExclusive(False)
@@ -224,8 +231,7 @@ class DemoWindow:
                 sw.setCurrentIndex(index - 1)
             else:
                 sw.setCurrentIndex(
-                    (2 + len(self.featureItems)) * (
-                            index - 1) + self.selectedFeatureNum)  # switch to the corresponding feature page
+                    3 * (index - 1) + min(self.selectedFeatureNum, 2))  # switch to the corresponding feature page
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
@@ -279,8 +285,9 @@ class DemoWindow:
         elif labelNum == 2:
             self.ui.imageLabel2.setPixmap(resultImg)
 
-    def showToastMessage(self, message: str):
+    def showToastMessage(self, message: str, title: str = "CAPAT"):
         msgBox = QMessageBox(parent=self.ui)
+        msgBox.setWindowTitle(title)
         msgBox.setText(message)
         msgBox.setStandardButtons(QMessageBox.Ok)
         msgBox.show()

@@ -103,7 +103,9 @@ def double_threshold_processing(x):  # x 为传入的图像
     return T1, T2, x
 
 def multi_threshold_processing(pixmap: QPixmap, num_thresholds, min_threshold, max_threshold):
+    # Load the image directly as a numpy array using cv2.imread
     x = qtpixmap_to_cvimg(pixmap)
+
     x = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
 
     hist = cv2.calcHist([x], [0], None, [256], [0, 256])
@@ -116,41 +118,41 @@ def multi_threshold_processing(pixmap: QPixmap, num_thresholds, min_threshold, m
     thresholded_images = []
     for i in range(num_thresholds):
         T1, T2, varMax = thresholds[i], thresholds[i+1], 0.0
-        for k1 in range(T1+1, T2-1):
-            gray_G1 = grayScale[:, :k1 + 1]
-            hist_G1 = hist[:k1 + 1, :]
-            sum_gray_G1 = np.dot(gray_G1, hist_G1)
-            sum_pixels_G1 = sum(hist_G1)
-            P1 = sum_pixels_G1 / sum_pixels
-            m1 = (sum_gray_G1 / sum_pixels_G1) if sum_pixels_G1 > 0 else 0
 
-            for k2 in range(k1 + 1, T2):
-                gray_G3 = grayScale[:, k2:]
-                hist_G3 = hist[k2:, :]
-                sum_gray_G3 = np.dot(gray_G3, hist_G3)
-                sum_pixels_G3 = sum(hist_G3)
-                P3 = sum_pixels_G3 / sum_pixels
-                m3 = (sum_gray_G3 / sum_pixels_G3) if sum_pixels_G3 > 0 else 0
+        # Vectorized implementation of nested for loops
+        gray_G1 = grayScale[:, :T2-1]
+        hist_G1 = hist[:T2-1, :]
+        sum_gray_G1 = np.dot(gray_G1, hist_G1)
+        sum_pixels_G1 = np.sum(hist_G1)
+        P1 = sum_pixels_G1 / sum_pixels
+        m1 = (sum_gray_G1 / sum_pixels_G1) if sum_pixels_G1 > 0 else 0
 
-                P2 = 1.0 - P1 - P3
-                m2 = ((mG - P1 * m1 - P3 * m3) / P2) if P2 > 0 else 0
+        gray_G3 = grayScale[:, T1+1:]
+        hist_G3 = hist[T1+1:, :]
+        sum_gray_G3 = np.dot(gray_G3, hist_G3)
+        sum_pixels_G3 = np.sum(hist_G3)
+        P3 = sum_pixels_G3 / sum_pixels
+        m3 = (sum_gray_G3 / sum_pixels_G3) if sum_pixels_G3 > 0 else 0
 
-                varB = P1 * (m1 - mG) ** 2 + P2 * (m2 - mG) ** 2 + P3 * (m3 - mG) ** 2
+        P2 = 1.0 - P1 - P3
+        m2 = ((mG - P1 * m1 - P3 * m3) / P2) if P2 > 0 else 0
 
-                if varB > varMax:
-                    T1, T2, varMax = k1, k2, varB
+        varB = P1 * (m1 - mG) ** 2 + P2 * (m2 - mG) ** 2 + P3 * (m3 - mG) ** 2
 
+        # Vectorized implementation of nested for loops
+        mask = np.logical_and(x > T1, x < T2)
         thresholded_image = np.zeros(x.shape, dtype=np.uint8)
-        thresholded_image[(x > T1) & (x < T2)] = (i+1) * int(255 / num_thresholds)
+        thresholded_image[mask] = (i+1) * int(255 / num_thresholds)
         thresholded_images.append(thresholded_image)
 
-    output_image = np.zeros(x.shape, dtype=np.uint8)
-    for i, img in enumerate(thresholded_images):
-        output_image += img
+    # Vectorized implementation of the for loop
+    output_image = np.sum(thresholded_images, axis=0)
 
-    output_image = cv2.cvtColor(output_image, cv2.COLOR_GRAY2BGR)  # 转换回3通道图像
+    output_image = output_image.astype('uint8')
+    output_image = cv2.cvtColor(output_image, cv2.COLOR_GRAY2BGR)
 
     return QPixmap(cvImg_to_qtImg(output_image))
+
 
 if __name__ == '__main__':
 
