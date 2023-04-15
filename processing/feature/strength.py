@@ -29,10 +29,7 @@ def sharpen_image(input_image:QPixmap, alpha = 10):
     # Convert the image to uint8
     sharp = sharp.astype("uint8")
 
-    cv2.imshow('gradient', gradient)
-
-    # sharp = cv2.cvtColor(sharp, cv2.COLOR_GRAY2BGR)
-
+    # cv2.imshow('gradient', gradient)
     # Convert the image to QPixmap via QImage
     height, width = sharp.shape
     bytesPerLine = width
