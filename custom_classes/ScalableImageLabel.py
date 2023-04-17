@@ -10,6 +10,7 @@ from custom_classes.CustomSignal import CustomSignal
 from floodFill import floodFill, qtpixmap_to_cvimg, cvImg_to_qtImg
 from pylivewire_master.gui import ImageWin
 from processing.stamp import findStamp
+from segment_anything_gui.seg5 import segment_image
 from utils import drawOutRectgle, bgraImg_to_qtImg
 
 global_refresh_result_signal = CustomSignal()
@@ -67,11 +68,18 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
                 self.repaint()
             self.freeCutWindow.destroy()
 
-        elif self.toolIndex == 3:  # aiSensor
+        elif self.toolIndex == 3:  # stampSensor
             self.scaledImgTemp = self.scaledImg
             self.scaledImg, self.cnts, self.stampSavedPath = findStamp(self.scaledImg)
             self.repaint()
             pass
+
+        elif self.toolIndex == 4:  # SAM Sensor
+            resultImg = segment_image(qtpixmap_to_cvimg(self.scaledImg))
+            if resultImg is not None:
+                self.scaledImg = QPixmap(cvImg_to_qtImg(resultImg))
+                self.imgPixmap = self.scaledImg
+                self.repaint()
 
         if self.toolIndex != -1:
             self.hasBackground = self.backgroundIndicator[self.toolIndex]  # 根据工具栏工具索引，判断结果图是否有背景

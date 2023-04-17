@@ -152,7 +152,6 @@ class DemoWindow:
         self.selectedFeatureNum = featureNum
         print(f"feature button clicked:{featureNum}")
 
-        initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
         imageLabel = self.imageLabels[self.selectedImgNum]
         image = imageLabel.scaledImg
         resultImage = None
@@ -162,17 +161,21 @@ class DemoWindow:
         elif featureNum == 1:  # stamp
             initStampList(self.stampLists[self.selectedImgNum])
         elif featureNum == 2:  # erode
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = erode(image, has_background=imageLabel.hasBackground,
                                 kernel_size_num=int(self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
                                 num_iterations=int(self.featureItems[featureNum]['params']['num_iterations']['initial']))
         elif featureNum == 3:  # ink color
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = multi_threshold_processing(image,
                                                      num_thresholds=int(self.featureItems[featureNum]['params']['num_thresholds']['initial']),
                                                      min_threshold=int(self.featureItems[featureNum]['params']['min_threshold']['initial']),
                                                      max_threshold=int(self.featureItems[featureNum]['params']['max_threshold']['initial']))
         elif featureNum == 4:  # global erode
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = sharpen_image(image, alpha=float(self.featureItems[featureNum]['params']['alpha']['initial']))
         elif featureNum == 5:  # extract color
+            initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = extract_color(image,
                                         tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
                                         limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
@@ -243,11 +246,6 @@ class DemoWindow:
         self.visualLabels[self.selectedImgNum].clear()
         self.visualLabels[self.selectedImgNum].setText("Visual Result " + str(self.selectedImgNum + 1))
 
-    def resetToolBar(self):
-        self.toolGroup.setExclusive(False)
-        self.toolGroup.setExclusive(True)
-        self.ui.moveBtn.setChecked(True)
-
     def onLabelSwitched(self, index: int):
         print(f"Working image label switched to groupbox {index}")
         self.selectedImgNum = index - 1
@@ -270,6 +268,11 @@ class DemoWindow:
             self.ui.imageLabel2.isSelected = True
             self.ui.originGroupBox1.setStyleSheet("")
             self.ui.originGroupBox2.setStyleSheet("QGroupBox {border: 3px solid blue;}")
+
+    def resetToolBar(self):
+        self.toolGroup.setExclusive(False)
+        self.toolGroup.setExclusive(True)
+        self.ui.moveBtn.setChecked(True)
 
     def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
         selectedImageLb.runWhenToolReleased()
@@ -364,6 +367,7 @@ class DemoWindow:
         self.toolGroup.addButton(self.ui.squareCutBtn, 1)
         self.toolGroup.addButton(self.ui.freeCutBtn, 2)
         self.toolGroup.addButton(self.ui.sensorBtn, 3)
+        self.toolGroup.addButton(self.ui.samBtn, 4)
         self.toolGroup.setExclusive(True)
         self.ui.moveBtn.setChecked(True)  # the default tool
 
