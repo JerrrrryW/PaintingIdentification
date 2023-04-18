@@ -273,6 +273,9 @@ class DemoWindow:
         self.toolGroup.setExclusive(False)
         self.toolGroup.setExclusive(True)
         self.ui.moveBtn.setChecked(True)
+        self.selectedToolNum = -1
+        self.imageLabels[self.selectedImgNum].toolIndex = -1
+
 
     def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
         selectedImageLb.runWhenToolReleased()
@@ -281,6 +284,8 @@ class DemoWindow:
         else:
             selectedImageLb.toolIndex = self.selectedToolNum = -1
         selectedImageLb.runWhenToolSelected()
+        if clickedBtnID == 2 or clickedBtnID == 4:  # reset tool bar after independent window return
+            self.resetToolBar()
 
     def onToolBtnReleased(self, selectedImageLb: scalableImageLabel):
         # selectedImageLb.toolIndex = -1

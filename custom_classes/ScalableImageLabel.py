@@ -28,7 +28,7 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
         self.toolIndex = -1  # 工具栏调用工具状态，0为当前未调用工具
-        self.backgroundIndicator = {0: False, 1: True, 2: False, 3: True}  # 根据工具栏工具索引，判断结果图是否有背景
+        self.backgroundIndicator = {0: False, 1: True, 2: False, 3: True, 4: False}  # 根据工具栏工具索引，判断结果图是否有背景
         self.hasBackground = bool(True)  # 当前结果图是否有背景
         # self.isSelected = False
         self.rect = None  # rect的四个元素意义分别为：起点坐标x、y、x轴长度、y轴长度
@@ -77,9 +77,10 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         elif self.toolIndex == 4:  # SAM Sensor
             resultImg = segment_image(qtpixmap_to_cvimg(self.scaledImg))
             if resultImg is not None:
-                self.scaledImg = QPixmap(cvImg_to_qtImg(resultImg))
+                self.scaledImg = QPixmap(bgraImg_to_qtImg(resultImg))
                 self.imgPixmap = self.scaledImg
                 self.repaint()
+
 
         if self.toolIndex != -1:
             self.hasBackground = self.backgroundIndicator[self.toolIndex]  # 根据工具栏工具索引，判断结果图是否有背景
