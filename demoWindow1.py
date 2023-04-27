@@ -10,6 +10,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from qt_material import apply_stylesheet
+
 from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
@@ -452,5 +454,12 @@ class DemoWindow:
 if __name__ == '__main__':
     app = QApplication([])
     demoWindow = DemoWindow()
+
+    extra = {
+        'font_family': 'Arial',
+        'font_size': 30,
+    }
+    apply_stylesheet(app, theme='light_amber.xml', invert_secondary=True, extra=extra)
+
     demoWindow.ui.show()
     app.exec_()

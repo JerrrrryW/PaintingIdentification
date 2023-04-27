@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>欢迎使用 CAPAT</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icon/painting.png</normaloff>../icon/painting.png</iconset>
+  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>
