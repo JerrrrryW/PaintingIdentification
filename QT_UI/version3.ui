@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1759</width>
-    <height>1267</height>
+    <width>1507</width>
+    <height>1236</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -414,7 +414,7 @@
              </font>
             </property>
             <property name="title">
-             <string>Original Image 1</string>
+             <string>原件</string>
             </property>
            </widget>
           </item>
@@ -426,7 +426,7 @@
              </font>
             </property>
             <property name="title">
-             <string>Original Image 2</string>
+             <string>对比</string>
             </property>
            </widget>
           </item>
@@ -446,7 +446,7 @@
            </font>
           </property>
           <property name="title">
-           <string>Processing Image</string>
+           <string>主窗口</string>
           </property>
           <property name="checkable">
            <bool>false</bool>
@@ -484,7 +484,7 @@
            </font>
           </property>
           <property name="title">
-           <string>Visualization</string>
+           <string>可视化</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
@@ -545,6 +545,12 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>题款</string>
             </property>
@@ -558,24 +564,46 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>印章</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="relativeNetworkBtn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>关系网络</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QToolButton" name="featuresBtn">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Multiple Features</string>
+             <string>更多</string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>

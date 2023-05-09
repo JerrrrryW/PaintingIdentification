@@ -158,7 +158,10 @@ class DemoWindow:
         image = imageLabel.scaledImg
         resultImage = None
 
-        if featureNum == 0:  # OCR
+        if featureNum == -1:  # Relationship network
+            pass
+
+        elif featureNum == 0:  # OCR
             pass
         elif featureNum == 1:  # stamp
             initStampList(self.stampLists[self.selectedImgNum])
@@ -394,6 +397,7 @@ class DemoWindow:
 
         self.ui.inscriptionBtn.clicked.connect(lambda: self.featureBtnClicked(0))
         self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(1))
+        self.ui.relativeNetworkBtn.clicked.connect(lambda: self.featureBtnClicked(-1))
         # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
 
     # def initTabBar(self):  # Tri-layer attributes tab bar on the right side
@@ -455,11 +459,11 @@ if __name__ == '__main__':
     app = QApplication([])
     demoWindow = DemoWindow()
 
-    extra = {
-        'font_family': 'Arial',
-        'font_size': 30,
-    }
-    apply_stylesheet(app, theme='light_amber.xml', invert_secondary=True, extra=extra)
+    # extra = {
+    #     'font_family': 'Arial',
+    #     'font_size': 30,
+    # }
+    # apply_stylesheet(app, theme='light_amber.xml', invert_secondary=True, extra=extra)
 
     demoWindow.ui.show()
     app.exec_()

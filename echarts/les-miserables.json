@@ -1,0 +1,30 @@
+{
+  "nodes": [
+    {"name": "Node 1", "value": 10, "category": "Category A"},
+    {"name": "Node 2", "value": 200, "category": "Category A"},
+    {"name": "Node 3", "value": 15, "category": "Category B"},
+    {"name": "Node 4", "value": 12, "category": "Category C"},
+    {"name": "Node 5", "value": 18, "category": "Category B"},
+    {"name": "Node 6", "value": 14, "category": "Category C"},
+    {"name": "Node 7", "value": 16, "category": "Category A"},
+    {"name": "Node 8", "value": 11, "category": "Category B"},
+    {"name": "Node 9", "value": 13, "category": "Category C"},
+    {"name": "Node 10", "value": 17, "category": "Category B"}
+  ],
+  "links": [
+    {"source": "Node 1", "target": "Node 2"},
+    {"source": "Node 1", "target": "Node 3"},
+    {"source": "Node 1", "target": "Node 4"},
+    {"source": "Node 2", "target": "Node 5"},
+    {"source": "Node 2", "target": "Node 6"},
+    {"source": "Node 3", "target": "Node 7"},
+    {"source": "Node 3", "target": "Node 8"},
+    {"source": "Node 4", "target": "Node 9"},
+    {"source": "Node 4", "target": "Node 10"}
+  ],
+  "categories": [
+    {"name": "Category A"},
+    {"name": "Category B"},
+    {"name": "Category C"}
+  ]
+}
