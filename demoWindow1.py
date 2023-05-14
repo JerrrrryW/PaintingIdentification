@@ -4,11 +4,13 @@ import sys
 from functools import partial
 
 import PyQt5.QtCore
-from PyQt5 import uic
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+import cv2
+from PyQt5 import uic, QtCore, QtWebEngineWidgets
+
+from PyQt5.QtCore import Qt, QSignalMapper, QUrl
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QFrame, QButtonGroup, QMenu, \
+    QFileDialog, QMessageBox, QApplication
 
 from qt_material import apply_stylesheet
 
@@ -64,6 +66,12 @@ def initStampList(listWidget: QListWidget):
 
         listWidget.setItemWidget(item, stampListUi)
 
+def convertCv2ToQImage(cv2_img):
+    height, width, channel = cv2_img.shape
+    bytes_per_line = 3 * width
+    qimage = QImage(cv2_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
+    return qimage
+
 
 def updateProcessingResult(parameter,
                            value):  # dynamic update the processing result when the slider value changed
@@ -89,6 +97,7 @@ class DemoWindow:
         # self.initTabBar()
 
         self.originImages = [None, None]  # to store the origin images
+        self.fragmentsLists = [self.ui.fragmentsList1, self.ui.fragmentsList2]  # to store the segmented fragments in visualization box
         self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
         self.originLabels = [self.ui.originImage1, self.ui.originImage2]  # to access the label faster
         self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget,
@@ -99,6 +108,9 @@ class DemoWindow:
         self.webViewLists = [self.ui.webEngineView1, self.ui.webEngineView2]
 
         self.onLabelSwitched(1)  # set default selected image label
+        self.fragmentsLists[0].setVisible(False)
+        self.fragmentsLists[1].setVisible(False)
+        self.segmented_fragments = []
 
         # refresh the toolbar when signal received
         global_refresh_result_signal.refresh_tool_bar.connect(self.resetToolBar)
@@ -185,7 +197,7 @@ class DemoWindow:
                                         tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
                                         limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
         elif featureNum == 6:  # generate relationship network
-            result = findRelativeEntities('y12')
+            result = findRelativeEntities('Y12')
             nodes, links = convert_to_nodes_and_links(result)
             print('nodes:', nodes, '\nlinks:', links)
             width = self.webViewLists[self.selectedImgNum].width()
@@ -309,9 +321,40 @@ class DemoWindow:
         # selectedImageLb.runWhenToolReleased()
         pass
 
+    def initFragmentsList(self, list_widget, image_list):
+        # 设置列表的滚动模式为水平滚动
+        list_widget.setFlow(QListWidget.LeftToRight)
+        list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        list_widget.setFrameShape(QFrame.NoFrame)
+
+        # 创建水平布局
+        layout = QHBoxLayout()
+        layout.setSpacing(10)  # 设置项之间的空隙
+
+        for i, img in enumerate(image_list):
+            # 创建 QListWidgetItem
+            item = QListWidgetItem(list_widget)
+
+            # 创建 QLabel，并设置图像
+            label = QLabel()
+            qpixmap = QPixmap.fromImage(convertCv2ToQImage(img))
+            label.setPixmap(qpixmap.scaledToHeight(100))
+            label.setAlignment(Qt.AlignCenter)  # 图片居中显示
+
+            # 将 QLabel 添加到 QListWidgetItem
+            item.setSizeHint(label.sizeHint())
+            list_widget.addItem(item)
+            list_widget.setItemWidget(item, label)
+
+        # 将布局设置为列表的布局
+        list_widget.setLayout(layout)
+        list_widget.itemDoubleClicked.connect(self.handleItemDoubleClicked)
+
+
     def openImgAndShow(self, imageIndex: int):
         originLabel = self.originLabels[imageIndex - 1]
         processingLabel = self.imageLabels[imageIndex - 1]
+        fragmentsList = self.fragmentsLists[imageIndex - 1]
         imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
                                                        "*.jpg;;*.png;;All Files(*)")
         original_jpg = QPixmap(imgName)
@@ -329,10 +372,23 @@ class DemoWindow:
             originLabel.setPixmap(scaled_jpg)
             processingLabel.setPixmap(original_jpg)
 
+            for filename in os.listdir('segment_anything_gui\\output'):
+                if filename.endswith('.jpg') or filename.endswith('.png'):
+                    self.segmented_fragments.append(cv2.cvtColor(cv2.imread('segment_anything_gui\\output\\' + filename), cv2.COLOR_BGR2RGB))
+            # init fragments list
+            self.initFragmentsList(fragmentsList, self.segmented_fragments)
+            fragmentsList.setVisible(True)
+
+    def handleItemDoubleClicked(self, item):
+        index = self.fragmentsLists[self.selectedImgNum].row(item)
+        if index < len(self.segmented_fragments):
+            img = self.segmented_fragments[index]
+            self.refreshResultImage(QPixmap.fromImage(convertCv2ToQImage(img)), self.selectedImgNum)
+
     def refreshResultImage(self, resultImg: QPixmap, labelNum):
-        if labelNum == 1:
+        if labelNum == 0:
             self.ui.imageLabel1.setPixmap(resultImg)
-        elif labelNum == 2:
+        elif labelNum == 1:
             self.ui.imageLabel2.setPixmap(resultImg)
 
     def showToastMessage(self, message: str, title: str = "CAPAT"):

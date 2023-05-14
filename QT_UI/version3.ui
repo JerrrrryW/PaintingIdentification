@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -510,7 +513,7 @@
               </sizepolicy>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>1</number>
              </property>
              <widget class="QWidget" name="visualizationPage1">
               <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -523,6 +526,9 @@
                   <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="fragmentsList1"/>
                </item>
               </layout>
              </widget>
@@ -537,6 +543,9 @@
                   <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="fragmentsList2"/>
                </item>
               </layout>
              </widget>
@@ -641,7 +650,7 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>3</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
               <layout class="QVBoxLayout" name="verticalLayout_2">

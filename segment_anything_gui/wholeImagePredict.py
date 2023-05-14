@@ -69,7 +69,7 @@ if __name__ == '__main__':
     for filename in os.listdir(input_dir):
         if filename.endswith('.jpg') or filename.endswith('.png'):
             image = cv2.imread(os.path.join(input_dir, filename))
-            masks = segment_image_everything(image, cuda=True)
+            masks = segment_image_everything(image, cuda=False)
             for mask in masks:
                 get_masked_image(image, mask['segmentation'], output_dir, filename, True)
 
