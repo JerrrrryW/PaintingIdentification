@@ -5,7 +5,7 @@ from functools import partial
 
 import PyQt5.QtCore
 from PyQt5 import uic
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -15,6 +15,8 @@ from qt_material import apply_stylesheet
 from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
+from echarts.relativeGraphTest import initPyQtGraph, initGraph
+from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links
 from processing.feature.erode import erode
 from processing.feature.inkColor import multi_threshold_processing
 from processing.feature.paintingColor import extract_color
@@ -94,6 +96,7 @@ class DemoWindow:
         self.stampLists = [self.ui.stampList1, self.ui.stampList2]
         self.visualLabels = [self.ui.visualLabel1, self.ui.visualLabel2]
         self.paramLists = [self.ui.paramList1, self.ui.paramList2]
+        self.webViewLists = [self.ui.webEngineView1, self.ui.webEngineView2]
 
         self.onLabelSwitched(1)  # set default selected image label
 
@@ -158,10 +161,7 @@ class DemoWindow:
         image = imageLabel.scaledImg
         resultImage = None
 
-        if featureNum == -1:  # Relationship network
-            pass
-
-        elif featureNum == 0:  # OCR
+        if featureNum == 0:  # OCR
             pass
         elif featureNum == 1:  # stamp
             initStampList(self.stampLists[self.selectedImgNum])
@@ -184,6 +184,16 @@ class DemoWindow:
             resultImage = extract_color(image,
                                         tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
                                         limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
+        elif featureNum == 6:  # generate relationship network
+            result = findRelativeEntities('y12')
+            nodes, links = convert_to_nodes_and_links(result)
+            print('nodes:', nodes, '\nlinks:', links)
+            width = self.webViewLists[self.selectedImgNum].width()
+            height = self.webViewLists[self.selectedImgNum].height()
+            renderred_graph_path = initGraph(nodes, links, [{"name": "绘画"}, {"name": "题款"}, {"name": "印鉴"}], width=width-20, height=height-20)
+            # initPyQtGraph(nodes, links, [{"name": "painting"}, {"name": "inscription"}, {"name": "seal"}], self.webViewLists[self.selectedImgNum])
+            self.webViewLists[self.selectedImgNum].load(QUrl('file:///' + renderred_graph_path))
+
 
         if resultImage is not None:
             self.visualLabels[self.selectedImgNum].setPixmap(resultImage)
@@ -191,9 +201,11 @@ class DemoWindow:
         # switch to the corresponding page
         if featureNum <= 2:
             self.ui.matchStackedWidget.setCurrentIndex(
-                3 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+                4 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
+        elif featureNum == 6:
+            self.ui.matchStackedWidget.setCurrentIndex(4 * self.selectedImgNum + 3)
         else:
-            self.ui.matchStackedWidget.setCurrentIndex(3 * self.selectedImgNum + 2)  # all features use the same page
+            self.ui.matchStackedWidget.setCurrentIndex(4 * self.selectedImgNum + 2)  # all features use the same page
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         resultImg = None
@@ -259,7 +271,7 @@ class DemoWindow:
                 sw.setCurrentIndex(index - 1)
             else:
                 sw.setCurrentIndex(
-                    3 * (index - 1) + min(self.selectedFeatureNum, 2))  # switch to the corresponding feature page
+                    4 * (index - 1) + min(self.selectedFeatureNum, 2))  # switch to the corresponding feature page
         # the corresponding GroupBox to blue and the other groupboxes to grey
         if index == 1:
             self.ui.imageLabel1.toolIndex = self.selectedToolNum  # Sync the tool selection
@@ -397,73 +409,19 @@ class DemoWindow:
 
         self.ui.inscriptionBtn.clicked.connect(lambda: self.featureBtnClicked(0))
         self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(1))
-        self.ui.relativeNetworkBtn.clicked.connect(lambda: self.featureBtnClicked(-1))
+        self.ui.relativeNetworkBtn.clicked.connect(lambda: self.featureBtnClicked(6))
         # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
-
-    # def initTabBar(self):  # Tri-layer attributes tab bar on the right side
-    #     primaryTabs = ["形状", "墨色", "笔法", "纹理"]
-    #     secondaryTabs = [["轮廓", "结构"],  # 形状的二级指标
-    #                      ["色调", "层次"],  # 墨色的二级指标
-    #                      ["力量", "技巧"],  # 笔法的二级指标
-    #                      ["材质", "效果"]]  # 纹理的二级指标
-    #     tertiaryTabs = [[["线宽", "线锋", "线形"],  # 轮廓的三级指标
-    #                      ["位置", "大小", "比例", "方向"]],  # 结构的三级指标
-    #                     [["明度", "色温", "饱和度"],  # 色调的三级指标
-    #                      ["变化度", "过渡度", "对比度"]],  # 层次的三级指标
-    #                     [["压力", "弹性", "速度"],  # 力量的三级指标
-    #                      ["熟练度", "灵活度", "变化度"]],  # 技巧的三级指标
-    #                     [["类型", "质地", "吸墨性"],  # 材质的三级指标
-    #                      ["光泽度", "透明度", "模糊度"]]]  # 效果的三级指标
-    #
-    #     self.ui.secTabStack.removeWidget(self.ui.secPage1)
-    #     self.ui.terAttrStack.removeWidget(self.ui.terPage1)
-    #     for i in range(len(primaryTabs)):  # retrieve the tabs
-    #         self.ui.primaryTabBar.addItem(primaryTabs[i])  # fill primary indicators in listview
-    #         # create pages dynamically to secondaryTabStack
-    #         secPage = QtWidgets.QWidget()
-    #         secPage.setObjectName(f"secondaryTabPage{i}")
-    #         secLayout = QtWidgets.QHBoxLayout(secPage)
-    #
-    #         listview = QtWidgets.QListWidget()
-    #         for j in range(len(secondaryTabs[i])):
-    #             listview.addItem(secondaryTabs[i][j])
-    #             # init terAttrPage in stackedWidget
-    #             terPage = QtWidgets.QWidget()
-    #             terPage.setObjectName(f"tertiaryAttrPage{i}-{j}")
-    #             terLayout = QtWidgets.QVBoxLayout(terPage)
-    #             terLayout.addWidget(self.createTertiaryAttributesGroupBox(tertiaryTabs[i][j], i, j, 1))
-    #             terLayout.addWidget(self.createTertiaryAttributesGroupBox(tertiaryTabs[i][j], i, j, 2))
-    #             self.ui.terAttrStack.addWidget(terPage)
-    #         secLayout.addWidget(listview)
-    #         listview.currentRowChanged.connect(self.on_row_changed(i))
-    #
-    #         self.ui.secTabStack.addWidget(secPage)
-    #     self.ui.primaryTabBar.currentRowChanged.connect(self.ui.secTabStack.setCurrentIndex)
-
-    # def createTertiaryAttributesGroupBox(self, terAttrList: [], pri, sec, pos):  # pri&sec is the parentTab num, pos means up1/down2 image
-    #     attrGroupBox = QGroupBox()
-    #     attrGroupBox.setTitle("Attributes")
-    #     attrLayout = QVBoxLayout(attrGroupBox)
-    #     for i in range(len(terAttrList)):
-    #         attrLayout.addWidget(QLabel(terAttrList[i] + ": "))
-    #         valueLabel = QLabel("0")
-    #         valueLabel.setObjectName(f"terAttrValue{pri}-{sec}-{i}-{pos}")  # to assure objectName is unique
-    #         slideBar = QSlider(Qt.Horizontal)
-    #         slideBar.setObjectName(f"terAttrSlider{pri}-{sec}-{i}-{pos}")
-    #         attrLayout.addWidget(valueLabel)
-    #         attrLayout.addWidget(slideBar)
-    #     return attrGroupBox
 
 
 if __name__ == '__main__':
     app = QApplication([])
     demoWindow = DemoWindow()
 
-    # extra = {
-    #     'font_family': 'Arial',
-    #     'font_size': 30,
-    # }
-    # apply_stylesheet(app, theme='light_amber.xml', invert_secondary=True, extra=extra)
+    extra = {
+        'font_family': 'Arial',
+        'font_size': 30,
+    }
+    apply_stylesheet(app, theme='light_amber.xml', invert_secondary=True, extra=extra)
 
     demoWindow.ui.show()
     app.exec_()

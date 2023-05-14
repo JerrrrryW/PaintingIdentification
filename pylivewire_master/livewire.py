@@ -68,7 +68,7 @@ class Livewire():
         dp = (self.grad_y[p[0]][p[1]], -self.grad_x[p[0]][p[1]])
         dq = (self.grad_y[q[0]][q[1]], -self.grad_x[q[0]][q[1]])
         
-        l = np.array([q[0]-p[0], q[1]-p[1]], np.float)
+        l = np.array([q[0]-p[0], q[1]-p[1]], np.float64)
         if 0 not in l:
             l *= SQRT_0_5
         
