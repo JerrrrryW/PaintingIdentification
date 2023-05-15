@@ -18,7 +18,8 @@ from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from echarts.relativeGraphTest import initPyQtGraph, initGraph
-from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links, findImgAndInfo
+from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links, findImgAndInfo, findPidBySid, \
+    DataSet_Dir
 from processing.feature.erode import erode
 from processing.feature.inkColor import multi_threshold_processing
 from processing.feature.paintingColor import extract_color
@@ -41,31 +42,6 @@ def initFeatureList(listWidget: QListWidget, featureIndicator):
         listWidget.setItemWidget(item, itemWidget)
 
 
-def initStampList(listWidget: QListWidget):
-    listWidget.clear()
-    listWidget.setEnabled(True)
-    listWidget.setFlow(QListWidget.TopToBottom)
-    listWidget.setResizeMode(QListWidget.Adjust)
-    # listWidget.setStyleSheet("background-color:transparent")
-    for i in range(10):
-        item = QListWidgetItem(listWidget)
-        stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
-        item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 4)))
-
-        # generate a sample stamp info TODO: link the dataset here
-        stampImg = QPixmap(
-            'input\\painting2_stamp.jpg')  # .scaled(stampListUi.stampImgLabel.size(), QtCore.Qt.KeepAspectRatio)
-        stampListUi.stampImgLabel.setPixmap(stampImg)
-        sourceImg = QPixmap(
-            'input\\painting2.jpg')  # .scaled(stampListUi.sourceImgLabel.size(), QtCore.Qt.KeepAspectRatio)
-        stampListUi.sourceImgLabel.setPixmap(sourceImg)
-        stampListUi.titleLabel.setText("Title " + str(i + 1))
-        ranPercent = random.randint(0, 100)
-        stampListUi.percentage.setText(str(ranPercent) + "%")
-        stampListUi.percentageBar.setValue(ranPercent)
-
-        listWidget.setItemWidget(item, stampListUi)
-
 def convertCv2ToQImage(cv2_img):
     height, width, channel = cv2_img.shape
     bytes_per_line = 3 * width
@@ -78,16 +54,6 @@ def updateProcessingResult(parameter,
     print(f"{parameter} value changed to {value}")
     if parameter == "erode":
         pass
-
-def refreshDetailBox(relatedImgLb: QLabel, relatedInfoLb: QLabel, queryid: str):
-    relatedView, relatedInfo = findImgAndInfo(queryid)
-    if isinstance(relatedView, str):
-        relatedImgLb.setText(relatedView)
-    elif isinstance(relatedView, QPixmap):
-        relatedImgLb.setPixmap(relatedView)
-    else:
-        relatedImgLb.setText('索引')
-    relatedInfoLb.setText(relatedInfo)
 
 
 class DemoWindow:
@@ -104,11 +70,12 @@ class DemoWindow:
         self.initToolBar()
         self.initClickedBtnConnection()
         self.initFeatureMenu()
-        refreshDetailBox(self.ui.relatedImgLb, self.ui.relatedInfoLb, 'P468')
+        self.refreshDetailBox('P468')
         # self.initTabBar()
 
         self.originImages = [None, None]  # to store the origin images
-        self.fragmentsLists = [self.ui.fragmentsList1, self.ui.fragmentsList2]  # to store the segmented fragments in visualization box
+        self.fragmentsLists = [self.ui.fragmentsList1,
+                               self.ui.fragmentsList2]  # to store the segmented fragments in visualization box
         self.imageLabels = [self.ui.imageLabel1, self.ui.imageLabel2]  # to access the label faster
         self.originLabels = [self.ui.originImage1, self.ui.originImage2]  # to access the label faster
         self.stackedWidgets = [self.ui.processingStackedWidget, self.ui.visualizationStackedWidget,
@@ -141,25 +108,25 @@ class DemoWindow:
                     'kernel_size_num': {'name': 'kernel size', 'min': 1, 'max': 10, 'initial': 3},
                     'num_iterations': {'name': 'color iterations', 'min': 2, 'max': 50, 'initial': 12},
                 }
-            },
+                },
             3: {'name': '墨色',
                 'params': {
                     'num_thresholds': {'name': 'Number of Thresholds', 'min': 2, 'max': 10, 'initial': 3},
                     'min_threshold': {'name': 'Minimum Threshold', 'min': 0, 'max': 255, 'initial': 0},
                     'max_threshold': {'name': 'Maximum Threshold', 'min': 0, 'max': 255, 'initial': 255},
                 }
-            },
+                },
             4: {'name': '力度（全局）',
                 'params': {
                     'alpha': {'name': 'sharp degree', 'min': 1, 'max': 30, 'initial': 10},
                 }
-            },
+                },
             5: {'name': '画色',
                 'params': {
                     'tolerance': {'name': 'Color Tolerance', 'min': 1, 'max': 50, 'initial': 10},
                     'limit_number': {'name': 'Number of Colors', 'min': 1, 'max': 20, 'initial': 10},
                 }
-            }
+                }
 
         }
 
@@ -173,7 +140,55 @@ class DemoWindow:
         mapper.mapped[int].connect(self.featureBtnClicked)
         self.ui.featuresBtn.setMenu(menu)
 
-    def featureBtnClicked(self, featureNum: int):
+    def onStampItemClicked(self, item: QListWidgetItem):
+        stamp_id = item.data(QtCore.Qt.UserRole)
+        self.refreshDetailBox(stamp_id)
+
+    def onStampItemDoubleClicked(self, item: QListWidgetItem):
+        stamp_id = item.data(QtCore.Qt.UserRole)
+        self.featureBtnClicked(6, param1=stamp_id)
+
+    def initStampList(self, listWidget: QListWidget, sorted_list):
+        listWidget.clear()
+        listWidget.setEnabled(True)
+        listWidget.setFlow(QListWidget.TopToBottom)
+        listWidget.setResizeMode(QListWidget.Adjust)
+        # listWidget.setStyleSheet("background-color:transparent")
+
+        for i, stamp_data in enumerate(sorted_list):
+            item = QListWidgetItem(listWidget)
+            stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
+            item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 4)))
+            item.setData(QtCore.Qt.UserRole, stamp_data['sid'])
+
+            # Set the stamp image obtained from the query result
+            if stamp_data['stamp_image'] is not None:
+                stampImg = stamp_data['stamp_image'].scaledToHeight(item.sizeHint().height())
+                stampListUi.stampImgLabel.setPixmap(stampImg)
+
+            # Replace with the actual source image for the stamp
+            if stamp_data['1st_painting_image'] is not None:
+                sourceImg = stamp_data['1st_painting_image'].scaledToHeight(item.sizeHint().height())
+                stampListUi.sourceImgLabel.setPixmap(sourceImg)
+            else:
+                stampListUi.sourceImgLabel.setText('暂无匹配画作')
+
+            stampListUi.detailLabel.setText(stamp_data['stamp_info'])
+            if stamp_data['matched_num'] > 1:
+                stampListUi.paintingLabel.setText(
+                    stamp_data['1st_painting_name'] + ' + ' + str(stamp_data['matched_num']))
+            else:
+                stampListUi.paintingLabel.setText(stamp_data['1st_painting_name'])
+
+            ranPercent = int(stamp_data['similarity'].rstrip('%'))  # Extract the similarity percentage
+            stampListUi.percentage.setText(stamp_data['similarity'])
+            stampListUi.percentageBar.setValue(ranPercent)
+
+            listWidget.setItemWidget(item, stampListUi)
+            listWidget.itemClicked.connect(self.onStampItemClicked)
+            listWidget.itemDoubleClicked.connect(self.onStampItemDoubleClicked)
+
+    def featureBtnClicked(self, featureNum: int, param1=None):
         if self.originImages[self.selectedImgNum] is None:
             self.showToastMessage("Please select an image first!", title="NO IMAGE SELECTED")
             return
@@ -187,18 +202,61 @@ class DemoWindow:
         if featureNum == 0:  # OCR
             pass
         elif featureNum == 1:  # stamp
-            initStampList(self.stampLists[self.selectedImgNum])
+            similarity_list = [
+                ('Y95', '56%'),
+                ('Y53', '19%'),
+                ('Y43', '9%'),
+                ('Y96', '13%'),
+                ('Y22', '3%'),
+                ('Y90', '3%')
+            ]
+            # Sort the similarity list based on similarity percentage in descending order
+            sorted_similarity_list = sorted(similarity_list, key=lambda x: float(x[1].rstrip('%')), reverse=True)
+            # Generate a new list with the sorted similarity information
+            sorted_list = []
+            for sid, similarity in sorted_similarity_list:
+                # Call the appropriate query function to get stamp information
+                stampPixmap, stamp_info = findImgAndInfo(sid)
+                pids = findPidBySid(sid)
+                if len(pids) >= 1:
+                    qimg = QImage(DataSet_Dir + 'PID\\' + pids[0][0].upper() + '.jpg')
+                    paintingPixmap = QPixmap.fromImage(qimg)
+                    paintingName = pids[0][1]
+                else:
+                    paintingPixmap = None
+                    paintingName = ''
+                # Create a dictionary with stamp information and similarity percentage
+                stamp_data = {
+                    'sid': sid,
+                    'stamp_image': stampPixmap,
+                    'stamp_info': stamp_info,
+                    'similarity': similarity,
+                    '1st_painting_image': paintingPixmap,
+                    '1st_painting_name': paintingName,
+                    'matched_num': len(pids)
+                }
+                sorted_list.append(stamp_data)
+            self.initStampList(self.stampLists[self.selectedImgNum], sorted_list)
+
         elif featureNum == 2:  # erode
             initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = erode(image, has_background=imageLabel.hasBackground,
-                                kernel_size_num=int(self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
-                                num_iterations=int(self.featureItems[featureNum]['params']['num_iterations']['initial']))
+                                kernel_size_num=int(
+                                    self.featureItems[featureNum]['params']['kernel_size_num']['initial']),
+                                num_iterations=int(
+                                    self.featureItems[featureNum]['params']['num_iterations']['initial']))
         elif featureNum == 3:  # ink color
             initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = multi_threshold_processing(image,
-                                                     num_thresholds=int(self.featureItems[featureNum]['params']['num_thresholds']['initial']),
-                                                     min_threshold=int(self.featureItems[featureNum]['params']['min_threshold']['initial']),
-                                                     max_threshold=int(self.featureItems[featureNum]['params']['max_threshold']['initial']))
+                                                     num_thresholds=int(
+                                                         self.featureItems[featureNum]['params']['num_thresholds'][
+                                                             'initial']),
+                                                     min_threshold=int(
+                                                         self.featureItems[featureNum]['params']['min_threshold'][
+                                                             'initial']),
+                                                     max_threshold=int(
+                                                         self.featureItems[featureNum]['params']['max_threshold'][
+                                                             'initial']))
         elif featureNum == 4:  # global erode
             initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = sharpen_image(image, alpha=float(self.featureItems[featureNum]['params']['alpha']['initial']))
@@ -206,29 +264,33 @@ class DemoWindow:
             initFeatureList(self.paramLists[self.selectedImgNum], self.featureItems[featureNum])
             resultImage = extract_color(image,
                                         tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
-                                        limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
+                                        limit_number=int(
+                                            self.featureItems[featureNum]['params']['limit_number']['initial']))
         elif featureNum == 6:  # generate relationship network
-            result = findRelativeEntities('Y95')
+            if param1 is None:
+                param1 = 'Y95'
+            result = findRelativeEntities(param1)
             nodes, links = convert_to_nodes_and_links(result)
             print('nodes:', nodes, '\nlinks:', links)
             width = self.webViewLists[self.selectedImgNum].width()
             height = self.webViewLists[self.selectedImgNum].height()
-            renderred_graph_path = initGraph(nodes, links, [{"name": "绘画"}, {"name": "题款"}, {"name": "印鉴"}], width=width-20, height=height-20)
+            renderred_graph_path = initGraph(nodes, links, [{"name": "绘画"}, {"name": "题款"}, {"name": "印鉴"}],
+                                             width=width - 20, height=height - 20)
             # initPyQtGraph(nodes, links, [{"name": "painting"}, {"name": "inscription"}, {"name": "seal"}], self.webViewLists[self.selectedImgNum])
             self.webViewLists[self.selectedImgNum].load(QUrl('file:///' + renderred_graph_path))
-
 
         if resultImage is not None:
             self.visualLabels[self.selectedImgNum].setPixmap(resultImage)
 
         # switch to the corresponding page
-        if featureNum <= 2:
+        if featureNum <= 2:  # inscription, seal recognitions & matching
             self.ui.matchStackedWidget.setCurrentIndex(
                 4 * self.selectedImgNum + self.selectedFeatureNum)  # switch to stamp list page of the selected image
-        elif featureNum == 6:
+        elif featureNum == 6:  # relationship network
             self.ui.matchStackedWidget.setCurrentIndex(4 * self.selectedImgNum + 3)
-        else:
+        else:  # adjustable feature functions
             self.ui.matchStackedWidget.setCurrentIndex(4 * self.selectedImgNum + 2)  # all features use the same page
+            self.fragmentsLists[self.selectedImgNum].setVisible(False)
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         resultImg = None
@@ -238,8 +300,10 @@ class DemoWindow:
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
             resultImg = erode(image, has_background=imageLabel.hasBackground,
-                              kernel_size_num=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                              num_iterations=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
+                              kernel_size_num=int(
+                                  self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                              num_iterations=int(
+                                  self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
             if resultImg is not None:
                 self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
@@ -248,18 +312,24 @@ class DemoWindow:
             item2 = self.paramLists[self.selectedImgNum].item(1)
             item3 = self.paramLists[self.selectedImgNum].item(2)
             resultImg = multi_threshold_processing(image,
-                                                   num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                                                   min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()),
-                                                   max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(item3).value_label.text()))
+                                                   num_thresholds=int(self.paramLists[self.selectedImgNum].itemWidget(
+                                                       item1).value_label.text()),
+                                                   min_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(
+                                                       item2).value_label.text()),
+                                                   max_threshold=int(self.paramLists[self.selectedImgNum].itemWidget(
+                                                       item3).value_label.text()))
         elif self.selectedFeatureNum == 4:
             item1 = self.paramLists[self.selectedImgNum].item(0)
-            resultImg = sharpen_image(image, alpha=float(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()))
+            resultImg = sharpen_image(image, alpha=float(
+                self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()))
         elif self.selectedFeatureNum == 5:
             item1 = self.paramLists[self.selectedImgNum].item(0)
             item2 = self.paramLists[self.selectedImgNum].item(1)
             resultImg = extract_color(image,
-                                      tolerance=int(self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
-                                      limit_number=int(self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
+                                      tolerance=int(
+                                          self.paramLists[self.selectedImgNum].itemWidget(item1).value_label.text()),
+                                      limit_number=int(
+                                          self.paramLists[self.selectedImgNum].itemWidget(item2).value_label.text()))
 
         if resultImg is not None:
             self.visualLabels[self.selectedImgNum].setPixmap(resultImg)
@@ -284,7 +354,8 @@ class DemoWindow:
 
         # Reset the visual label
         self.visualLabels[self.selectedImgNum].clear()
-        self.visualLabels[self.selectedImgNum].setText("Visual Result " + str(self.selectedImgNum + 1))
+        self.visualLabels[self.selectedImgNum].setText("原件全局分割切片")
+        self.fragmentsLists[self.selectedImgNum].setVisible(True)
 
     def onLabelSwitched(self, index: int):
         print(f"Working image label switched to groupbox {index}")
@@ -315,7 +386,6 @@ class DemoWindow:
         self.ui.moveBtn.setChecked(True)
         self.selectedToolNum = -1
         self.imageLabels[self.selectedImgNum].toolIndex = -1
-
 
     def onToolBtnClicked(self, clickedBtnID, selectedImageLb: scalableImageLabel):
         selectedImageLb.runWhenToolReleased()
@@ -359,15 +429,15 @@ class DemoWindow:
 
         # 将布局设置为列表的布局
         list_widget.setLayout(layout)
-        list_widget.itemDoubleClicked.connect(self.handleItemDoubleClicked)
+        list_widget.itemDoubleClicked.connect(self.handleFragmentItemDoubleClicked)
 
-
-    def openImgAndShow(self, imageIndex: int):
+    def openImgAndShow(self, imageIndex: int, imgName=None):
         originLabel = self.originLabels[imageIndex - 1]
         processingLabel = self.imageLabels[imageIndex - 1]
         fragmentsList = self.fragmentsLists[imageIndex - 1]
-        imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
-                                                       "*.jpg;;*.png;;All Files(*)")
+        if imgName is None:
+            imgName, imgType = QFileDialog.getOpenFileName(originLabel, "打开图片", self.Path,
+                                                           "*.jpg;;*.png;;All Files(*)")
         original_jpg = QPixmap(imgName)
         self.originImages[imageIndex - 1] = original_jpg
         print("origin:", original_jpg.width(), original_jpg.height())
@@ -385,12 +455,14 @@ class DemoWindow:
 
             for filename in os.listdir('segment_anything_gui/segmented_output'):
                 if filename.endswith('.jpg') or filename.endswith('.png'):
-                    self.segmented_fragments.append(cv2.cvtColor(cv2.imread('segment_anything_gui\\segmented_output\\' + filename), cv2.COLOR_BGR2RGB))
+                    self.segmented_fragments.append(
+                        cv2.cvtColor(cv2.imread('segment_anything_gui\\segmented_output\\' + filename),
+                                     cv2.COLOR_BGR2RGB))
             # init fragments list
             self.initFragmentsList(fragmentsList, self.segmented_fragments)
             fragmentsList.setVisible(True)
 
-    def handleItemDoubleClicked(self, item):
+    def handleFragmentItemDoubleClicked(self, item):
         index = self.fragmentsLists[self.selectedImgNum].row(item)
         if index < len(self.segmented_fragments):
             img = self.segmented_fragments[index]
@@ -464,6 +536,8 @@ class DemoWindow:
         # image file uploading
         self.ui.selectBtn1.clicked.connect(lambda: self.openImgAndShow(1))
         self.ui.selectBtn2.clicked.connect(lambda: self.openImgAndShow(2))
+        self.ui.demoBtn.clicked.connect(lambda: self.openImgAndShow(1,
+                                                                    'D:/#Personal_Data/BigFiles_of_Academic/CAPAT_Program/PaintingAuthentication/input/painting0_cut.jpg'))
         self.ui.resetBtn.clicked.connect(self.resetBtnClicked)
 
         self.toolGroup.buttonPressed[int].connect(lambda _:  # [int] 指定了信号传递的为触发的按钮id
@@ -478,6 +552,17 @@ class DemoWindow:
         self.ui.stampBtn.clicked.connect(lambda: self.featureBtnClicked(1))
         self.ui.relativeNetworkBtn.clicked.connect(lambda: self.featureBtnClicked(6))
         # self.ui.stampBtn.release.connect(lambda: setattr(self, 'selectedFeatureNum', 0))  # reset the selected feature
+
+    def refreshDetailBox(self, queryId: str):
+        relatedImgLb, relatedInfoLb = self.ui.relatedImgLb, self.ui.relatedInfoLb
+        relatedView, relatedInfo = findImgAndInfo(queryId)
+        if isinstance(relatedView, str):
+            relatedImgLb.setText(relatedView)
+        elif isinstance(relatedView, QPixmap):
+            relatedImgLb.setPixmap(relatedView)
+        else:
+            relatedImgLb.setText('索引')
+        relatedInfoLb.setText(relatedInfo)
 
 
 if __name__ == '__main__':

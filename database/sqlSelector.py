@@ -143,7 +143,7 @@ def findImgAndInfo(queryid: str):
         sResult = mycursor.fetchall()
         label = ["编号", "印章名", "所有者", "类型"]
         for i, infoItem in enumerate(sResult[0]):
-            relatedInfo = relatedInfo + label[i] + '：\t' + infoItem + '\n'
+            relatedInfo = relatedInfo + label[i] + '：' + infoItem + '\n'
 
     elif queryid.startswith('t') or queryid.startswith('T'):
         relatedView = '题款'

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1740</width>
+    <width>1858</width>
     <height>1236</height>
    </rect>
   </property>
@@ -375,7 +375,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="saveBtn">
+       <widget class="QPushButton" name="demoBtn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
