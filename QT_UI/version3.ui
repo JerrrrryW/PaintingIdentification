@@ -650,19 +650,29 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>6</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
               <layout class="QVBoxLayout" name="verticalLayout_2">
                <item>
-                <widget class="QLabel" name="label_4">
+                <widget class="QLabel" name="ocrResultLabel1">
+                 <property name="font">
+                  <font>
+                   <pointsize>12</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
-                  <string>题款匹配部分1</string>
+                  <string>题款匹配结果：</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="ocrList1"/>
                </item>
               </layout>
              </widget>
@@ -670,6 +680,12 @@
               <layout class="QVBoxLayout" name="verticalLayout_7">
                <item>
                 <widget class="QListWidget" name="stampList1">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">background-color:transparent</string>
                  </property>
@@ -704,7 +720,7 @@
              <widget class="QWidget" name="matchPage2_1">
               <layout class="QVBoxLayout" name="verticalLayout_5">
                <item>
-                <widget class="QLabel" name="label_3">
+                <widget class="QLabel" name="ocrResultLabel2">
                  <property name="text">
                   <string>题款匹配部分2</string>
                  </property>
@@ -712,6 +728,9 @@
                   <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
+               </item>
+               <item>
+                <widget class="QListWidget" name="ocrList2"/>
                </item>
               </layout>
              </widget>
@@ -795,13 +814,14 @@
               </font>
              </property>
              <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap>../../Dataset/YID/Y6.png</pixmap>
+              <string>索引
+预览</string>
              </property>
              <property name="scaledContents">
               <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -818,12 +838,12 @@
               <string notr="true">QLabel {{ padding-right: 10px; }}</string>
              </property>
              <property name="text">
-              <string>作品名:五百罗汉之观舍利光图
-年代:南宋
-作者: 周季常
-尺寸:111.5*53.1cm
-材质:绢本立轴
-馆藏:波士顿美术馆</string>
+              <string>作品名:
+年代:
+作者: 
+尺寸:
+材质:
+馆藏:</string>
              </property>
             </widget>
            </item>

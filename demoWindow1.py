@@ -8,7 +8,7 @@ import cv2
 from PyQt5 import uic, QtCore, QtWebEngineWidgets
 
 from PyQt5.QtCore import Qt, QSignalMapper, QUrl
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QFont
 from PyQt5.QtWidgets import QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QFrame, QButtonGroup, QMenu, \
     QFileDialog, QMessageBox, QApplication
 
@@ -16,6 +16,7 @@ from qt_material import apply_stylesheet
 
 from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
+from custom_classes.commandTransOCR import OutputReaderThread
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from echarts.relativeGraphTest import initPyQtGraph, initGraph
 from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links, findImgAndInfo, findPidBySid, \
@@ -59,6 +60,7 @@ def updateProcessingResult(parameter,
 class DemoWindow:
 
     def __init__(self):
+
         self.ui = uic.loadUi('QT_UI\\version3.ui')
 
         self.toolGroup = QButtonGroup()
@@ -70,7 +72,8 @@ class DemoWindow:
         self.initToolBar()
         self.initClickedBtnConnection()
         self.initFeatureMenu()
-        self.refreshDetailBox('P468')
+        # self.refreshDetailBox('P468')
+        self.focusedEntity = 'Y95'  # to generate relationship network
         # self.initTabBar()
 
         self.originImages = [None, None]  # to store the origin images
@@ -84,6 +87,8 @@ class DemoWindow:
         self.visualLabels = [self.ui.visualLabel1, self.ui.visualLabel2]
         self.paramLists = [self.ui.paramList1, self.ui.paramList2]
         self.webViewLists = [self.ui.webEngineView1, self.ui.webEngineView2]
+        self.ocrResultLabels = [self.ui.ocrResultLabel1, self.ui.ocrResultLabel2]
+        self.ocrLists = [self.ui.ocrList1, self.ui.ocrList2]
 
         self.onLabelSwitched(1)  # set default selected image label
         self.fragmentsLists[0].setVisible(False)
@@ -100,7 +105,6 @@ class DemoWindow:
     ''' 
     Initialization of features
     '''
-
     def initFeatureMenu(self):
         self.featureItems = {  # to store the feature items
             2: {'name': '力度（笔画）',
@@ -140,54 +144,6 @@ class DemoWindow:
         mapper.mapped[int].connect(self.featureBtnClicked)
         self.ui.featuresBtn.setMenu(menu)
 
-    def onStampItemClicked(self, item: QListWidgetItem):
-        stamp_id = item.data(QtCore.Qt.UserRole)
-        self.refreshDetailBox(stamp_id)
-
-    def onStampItemDoubleClicked(self, item: QListWidgetItem):
-        stamp_id = item.data(QtCore.Qt.UserRole)
-        self.featureBtnClicked(6, param1=stamp_id)
-
-    def initStampList(self, listWidget: QListWidget, sorted_list):
-        listWidget.clear()
-        listWidget.setEnabled(True)
-        listWidget.setFlow(QListWidget.TopToBottom)
-        listWidget.setResizeMode(QListWidget.Adjust)
-        # listWidget.setStyleSheet("background-color:transparent")
-
-        for i, stamp_data in enumerate(sorted_list):
-            item = QListWidgetItem(listWidget)
-            stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
-            item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 4)))
-            item.setData(QtCore.Qt.UserRole, stamp_data['sid'])
-
-            # Set the stamp image obtained from the query result
-            if stamp_data['stamp_image'] is not None:
-                stampImg = stamp_data['stamp_image'].scaledToHeight(item.sizeHint().height())
-                stampListUi.stampImgLabel.setPixmap(stampImg)
-
-            # Replace with the actual source image for the stamp
-            if stamp_data['1st_painting_image'] is not None:
-                sourceImg = stamp_data['1st_painting_image'].scaledToHeight(item.sizeHint().height())
-                stampListUi.sourceImgLabel.setPixmap(sourceImg)
-            else:
-                stampListUi.sourceImgLabel.setText('暂无匹配画作')
-
-            stampListUi.detailLabel.setText(stamp_data['stamp_info'])
-            if stamp_data['matched_num'] > 1:
-                stampListUi.paintingLabel.setText(
-                    stamp_data['1st_painting_name'] + ' + ' + str(stamp_data['matched_num']))
-            else:
-                stampListUi.paintingLabel.setText(stamp_data['1st_painting_name'])
-
-            ranPercent = int(stamp_data['similarity'].rstrip('%'))  # Extract the similarity percentage
-            stampListUi.percentage.setText(stamp_data['similarity'])
-            stampListUi.percentageBar.setValue(ranPercent)
-
-            listWidget.setItemWidget(item, stampListUi)
-            listWidget.itemClicked.connect(self.onStampItemClicked)
-            listWidget.itemDoubleClicked.connect(self.onStampItemDoubleClicked)
-
     def featureBtnClicked(self, featureNum: int, param1=None):
         if self.originImages[self.selectedImgNum] is None:
             self.showToastMessage("Please select an image first!", title="NO IMAGE SELECTED")
@@ -200,7 +156,8 @@ class DemoWindow:
         resultImage = None
 
         if featureNum == 0:  # OCR
-            pass
+            self.recognize_image(image, self.ocrResultLabels[self.selectedImgNum], self.ocrLists[self.selectedImgNum])
+            os.chdir(self.Path)
         elif featureNum == 1:  # stamp
             similarity_list = [
                 ('Y95', '56%'),
@@ -268,7 +225,9 @@ class DemoWindow:
                                             self.featureItems[featureNum]['params']['limit_number']['initial']))
         elif featureNum == 6:  # generate relationship network
             if param1 is None:
-                param1 = 'Y95'
+                param1 = self.focusedEntity
+            else:
+                self.focusedEntity = param1
             result = findRelativeEntities(param1)
             nodes, links = convert_to_nodes_and_links(result)
             print('nodes:', nodes, '\nlinks:', links)
@@ -291,6 +250,58 @@ class DemoWindow:
         else:  # adjustable feature functions
             self.ui.matchStackedWidget.setCurrentIndex(4 * self.selectedImgNum + 2)  # all features use the same page
             self.fragmentsLists[self.selectedImgNum].setVisible(False)
+
+    '''
+    Stamp initiation
+    '''
+
+    def onStampItemClicked(self, item: QListWidgetItem):
+        stamp_id = item.data(QtCore.Qt.UserRole)
+        self.refreshDetailBox(stamp_id)
+
+    def onStampItemDoubleClicked(self, item: QListWidgetItem):
+        stamp_id = item.data(QtCore.Qt.UserRole)
+        self.featureBtnClicked(6, param1=stamp_id)
+
+    def initStampList(self, listWidget: QListWidget, sorted_list):
+        listWidget.clear()
+        listWidget.setEnabled(True)
+        listWidget.setFlow(QListWidget.TopToBottom)
+        listWidget.setResizeMode(QListWidget.Adjust)
+        # listWidget.setStyleSheet("background-color:transparent")
+
+        for i, stamp_data in enumerate(sorted_list):
+            item = QListWidgetItem(listWidget)
+            stampListUi = uic.loadUi('QT_UI\\stampListItem.ui')
+            item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 4)))
+            item.setData(QtCore.Qt.UserRole, stamp_data['sid'])
+
+            # Set the stamp image obtained from the query result
+            if stamp_data['stamp_image'] is not None:
+                stampImg = stamp_data['stamp_image'].scaledToHeight(item.sizeHint().height())
+                stampListUi.stampImgLabel.setPixmap(stampImg)
+
+            # Replace with the actual source image for the stamp
+            if stamp_data['1st_painting_image'] is not None:
+                sourceImg = stamp_data['1st_painting_image'].scaledToHeight(item.sizeHint().height())
+                stampListUi.sourceImgLabel.setPixmap(sourceImg)
+            else:
+                stampListUi.sourceImgLabel.setText('暂无匹配画作')
+
+            stampListUi.detailLabel.setText(stamp_data['stamp_info'])
+            if stamp_data['matched_num'] > 1:
+                stampListUi.paintingLabel.setText(
+                    stamp_data['1st_painting_name'] + ' + ' + str(stamp_data['matched_num']))
+            else:
+                stampListUi.paintingLabel.setText(stamp_data['1st_painting_name'])
+
+            ranPercent = int(stamp_data['similarity'].rstrip('%'))  # Extract the similarity percentage
+            stampListUi.percentage.setText(stamp_data['similarity'])
+            stampListUi.percentageBar.setValue(ranPercent)
+
+            listWidget.setItemWidget(item, stampListUi)
+            listWidget.itemClicked.connect(self.onStampItemClicked)
+            listWidget.itemDoubleClicked.connect(self.onStampItemDoubleClicked)
 
     def updateProcessedResultByFeature(self, featureName: str, featureValue: int):
         resultImg = None
@@ -402,34 +413,9 @@ class DemoWindow:
         # selectedImageLb.runWhenToolReleased()
         pass
 
-    def initFragmentsList(self, list_widget, image_list):
-        # 设置列表的滚动模式为水平滚动
-        list_widget.setFlow(QListWidget.LeftToRight)
-        list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        list_widget.setFrameShape(QFrame.NoFrame)
-
-        # 创建水平布局
-        layout = QHBoxLayout()
-        layout.setSpacing(10)  # 设置项之间的空隙
-
-        for i, img in enumerate(image_list):
-            # 创建 QListWidgetItem
-            item = QListWidgetItem(list_widget)
-
-            # 创建 QLabel，并设置图像
-            label = QLabel()
-            qpixmap = QPixmap.fromImage(convertCv2ToQImage(img))
-            label.setPixmap(qpixmap.scaledToHeight(100))
-            label.setAlignment(Qt.AlignCenter)  # 图片居中显示
-
-            # 将 QLabel 添加到 QListWidgetItem
-            item.setSizeHint(label.sizeHint())
-            list_widget.addItem(item)
-            list_widget.setItemWidget(item, label)
-
-        # 将布局设置为列表的布局
-        list_widget.setLayout(layout)
-        list_widget.itemDoubleClicked.connect(self.handleFragmentItemDoubleClicked)
+    '''
+    open image and SAM fragments initiation
+    '''
 
     def openImgAndShow(self, imageIndex: int, imgName=None):
         originLabel = self.originLabels[imageIndex - 1]
@@ -462,11 +448,101 @@ class DemoWindow:
             self.initFragmentsList(fragmentsList, self.segmented_fragments)
             fragmentsList.setVisible(True)
 
+    def initFragmentsList(self, list_widget, image_list):
+        # 设置列表的滚动模式为水平滚动
+        list_widget.setFlow(QListWidget.LeftToRight)
+        list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        list_widget.setFrameShape(QFrame.NoFrame)
+
+        # 创建水平布局
+        layout = QHBoxLayout()
+        layout.setSpacing(10)  # 设置项之间的空隙
+
+        for i, img in enumerate(image_list):
+            # 创建 QListWidgetItem
+            item = QListWidgetItem(list_widget)
+
+            # 创建 QLabel，并设置图像
+            label = QLabel()
+            qpixmap = QPixmap.fromImage(convertCv2ToQImage(img))
+            label.setPixmap(qpixmap.scaledToHeight(100))
+            label.setAlignment(Qt.AlignCenter)  # 图片居中显示
+
+            # 将 QLabel 添加到 QListWidgetItem
+            item.setSizeHint(label.sizeHint())
+            list_widget.addItem(item)
+            list_widget.setItemWidget(item, label)
+
+        # 将布局设置为列表的布局
+        list_widget.setLayout(layout)
+        list_widget.itemDoubleClicked.connect(self.handleFragmentItemDoubleClicked)
+
     def handleFragmentItemDoubleClicked(self, item):
         index = self.fragmentsLists[self.selectedImgNum].row(item)
         if index < len(self.segmented_fragments):
             img = self.segmented_fragments[index]
             self.refreshResultImage(QPixmap.fromImage(convertCv2ToQImage(img)), self.selectedImgNum)
+
+    '''OCR initiation'''
+
+    def handle_ocr_result(self, line: str, resultLabel: QLabel, ocrList: QListWidget):
+        if line.startswith("Result:"):
+            result = line.split("Result:")[-1].strip()
+            resultLabel.setText('识别成功：' + result)
+        else:
+            resultLabel.setText(line)
+
+    def recognize_image(self, image: QPixmap, resultLabel: QLabel, ocrList: QListWidget):
+        command = 'python main.py --test --exp_name=hwdb1 --test_dataset=input/ --radical --resume=data/handwriting_radical.pth'
+        working_directory = 'D:\\#Personal_Data\\BigFiles_of_Academic\\CAPAT_Program\\benchmarking-chinese-text-recognition\\models\\TransOCR\\'
+        image.save(working_directory + "input\\ocr.png")
+        thread = OutputReaderThread(command, working_directory)
+        thread.output_updated.connect(lambda line: self.handle_ocr_result(line, resultLabel, ocrList))
+        thread.start()
+
+    def initOCRList(self, listWidget: QListWidget, sorted_list):
+        listWidget.clear()
+        listWidget.setEnabled(True)
+        listWidget.setFlow(QListWidget.TopToBottom)
+        listWidget.setResizeMode(QListWidget.Adjust)
+        # listWidget.setStyleSheet("background-color:transparent")
+
+        for i, inscription_data in enumerate(sorted_list):
+            item = QListWidgetItem(listWidget)
+            stampListUi = uic.loadUi('QT_UI\\inscriptionListItem.ui')
+            item.setSizeHint(QtCore.QSize(listWidget.width() - 20, int((listWidget.height() - 10) / 5)))
+            # item.setData(QtCore.Qt.UserRole, stamp_data['sid'])
+            #
+            # # Set the stamp image obtained from the query result
+            # if stamp_data['stamp_image'] is not None:
+            #     stampImg = stamp_data['stamp_image'].scaledToHeight(item.sizeHint().height())
+            #     stampListUi.stampImgLabel.setPixmap(stampImg)
+            #
+            # # Replace with the actual source image for the stamp
+            # if stamp_data['1st_painting_image'] is not None:
+            #     sourceImg = stamp_data['1st_painting_image'].scaledToHeight(item.sizeHint().height())
+            #     stampListUi.sourceImgLabel.setPixmap(sourceImg)
+            # else:
+            #     stampListUi.sourceImgLabel.setText('暂无匹配画作')
+            #
+            # stampListUi.detailLabel.setText(stamp_data['stamp_info'])
+            # if stamp_data['matched_num'] > 1:
+            #     stampListUi.paintingLabel.setText(
+            #         stamp_data['1st_painting_name'] + ' + ' + str(stamp_data['matched_num']))
+            # else:
+            #     stampListUi.paintingLabel.setText(stamp_data['1st_painting_name'])
+            #
+            # ranPercent = int(stamp_data['similarity'].rstrip('%'))  # Extract the similarity percentage
+            # stampListUi.percentage.setText(stamp_data['similarity'])
+            # stampListUi.percentageBar.setValue(ranPercent)
+
+            listWidget.setItemWidget(item, stampListUi)
+            listWidget.itemClicked.connect(self.onStampItemClicked)
+            listWidget.itemDoubleClicked.connect(self.onStampItemDoubleClicked)
+
+    '''
+    general function
+    '''
 
     def refreshResultImage(self, resultImg: QPixmap, labelNum):
         if labelNum == 0:
@@ -482,7 +558,7 @@ class DemoWindow:
         msgBox.show()
 
     '''
-    initialization of the UI widgets
+    initialization of the mainWindow widgets
     '''
 
     def initImageLabels(self):  # load custom image processing labels
