@@ -513,14 +513,14 @@
               </sizepolicy>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="visualizationPage1">
               <layout class="QVBoxLayout" name="verticalLayout_10">
                <item>
                 <widget class="QLabel" name="visualLabel1">
                  <property name="text">
-                  <string>Visual Result 1</string>
+                  <string>原件全局分割切片</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -537,7 +537,7 @@
                <item>
                 <widget class="QLabel" name="visualLabel2">
                  <property name="text">
-                  <string>Visual Result 2</string>
+                  <string>对比图全局分割切片</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -650,7 +650,7 @@
            <item>
             <widget class="QStackedWidget" name="matchStackedWidget">
              <property name="currentIndex">
-              <number>0</number>
+              <number>6</number>
              </property>
              <widget class="QWidget" name="matchPage1_1">
               <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -762,7 +762,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_2">
+         <widget class="QGroupBox" name="detailBox">
           <property name="minimumSize">
            <size>
             <width>400</width>
@@ -787,6 +787,13 @@
                <height>200</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -799,7 +806,17 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="relatedInfo">
+            <widget class="QLabel" name="relatedInfoLb">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QLabel {{ padding-right: 10px; }}</string>
+             </property>
              <property name="text">
               <string>作品名:五百罗汉之观舍利光图
 年代:南宋

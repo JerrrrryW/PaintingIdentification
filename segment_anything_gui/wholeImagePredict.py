@@ -64,7 +64,7 @@ def segment_image_everything(image, model_dir='.\\', model_name='sam_vit_b_01ec6
 
 if __name__ == '__main__':
     input_dir = '.\\input'
-    output_dir = '.\\output'
+    output_dir = '.\\output1'
 
     for filename in os.listdir(input_dir):
         if filename.endswith('.jpg') or filename.endswith('.png'):

@@ -18,7 +18,7 @@ from custom_classes.ClickableLabel import ClickableLabel
 from custom_classes.ScalableImageLabel import scalableImageLabel, global_refresh_result_signal
 from custom_classes.featureSliderWidget import featureSliderWidget, grobal_update_processed_result
 from echarts.relativeGraphTest import initPyQtGraph, initGraph
-from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links
+from database.sqlSelector import findRelativeEntities, convert_to_nodes_and_links, findImgAndInfo
 from processing.feature.erode import erode
 from processing.feature.inkColor import multi_threshold_processing
 from processing.feature.paintingColor import extract_color
@@ -79,6 +79,16 @@ def updateProcessingResult(parameter,
     if parameter == "erode":
         pass
 
+def refreshDetailBox(relatedImgLb: QLabel, relatedInfoLb: QLabel, queryid: str):
+    relatedView, relatedInfo = findImgAndInfo(queryid)
+    if isinstance(relatedView, str):
+        relatedImgLb.setText(relatedView)
+    elif isinstance(relatedView, QPixmap):
+        relatedImgLb.setPixmap(relatedView)
+    else:
+        relatedImgLb.setText('索引')
+    relatedInfoLb.setText(relatedInfo)
+
 
 class DemoWindow:
 
@@ -94,6 +104,7 @@ class DemoWindow:
         self.initToolBar()
         self.initClickedBtnConnection()
         self.initFeatureMenu()
+        refreshDetailBox(self.ui.relatedImgLb, self.ui.relatedInfoLb, 'P468')
         # self.initTabBar()
 
         self.originImages = [None, None]  # to store the origin images
@@ -197,7 +208,7 @@ class DemoWindow:
                                         tolerance=int(self.featureItems[featureNum]['params']['tolerance']['initial']),
                                         limit_number=int(self.featureItems[featureNum]['params']['limit_number']['initial']))
         elif featureNum == 6:  # generate relationship network
-            result = findRelativeEntities('Y12')
+            result = findRelativeEntities('Y95')
             nodes, links = convert_to_nodes_and_links(result)
             print('nodes:', nodes, '\nlinks:', links)
             width = self.webViewLists[self.selectedImgNum].width()
@@ -372,9 +383,9 @@ class DemoWindow:
             originLabel.setPixmap(scaled_jpg)
             processingLabel.setPixmap(original_jpg)
 
-            for filename in os.listdir('segment_anything_gui\\output'):
+            for filename in os.listdir('segment_anything_gui/segmented_output'):
                 if filename.endswith('.jpg') or filename.endswith('.png'):
-                    self.segmented_fragments.append(cv2.cvtColor(cv2.imread('segment_anything_gui\\output\\' + filename), cv2.COLOR_BGR2RGB))
+                    self.segmented_fragments.append(cv2.cvtColor(cv2.imread('segment_anything_gui\\segmented_output\\' + filename), cv2.COLOR_BGR2RGB))
             # init fragments list
             self.initFragmentsList(fragmentsList, self.segmented_fragments)
             fragmentsList.setVisible(True)

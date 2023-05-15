@@ -1,9 +1,11 @@
 import mysql.connector
 import cv2
+from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QApplication
 
 from echarts.relativeGraphTest import initPyQtGraph
 
+DataSet_Dir = 'D:\\#Personal_Data\\BigFiles_of_Academic\\CAPAT_Program\\Dataset\\'
 # create a connection to the MySQL database
 mydb = mysql.connector.connect(
     host="localhost",
@@ -16,10 +18,12 @@ mydb = mysql.connector.connect(
 # create a cursor to execute SQL queries
 mycursor = mydb.cursor()
 
+
 def findPidBySid(sid: str):
     mycursor.execute("SELECT P_S.pid, name FROM P_S, paintings WHERE P_S.sid = %s and P_S.pid = paintings.pid;", (sid,))
     result = mycursor.fetchall()
     return result
+
 
 def findRelativeEntities(queryid: str):
     result = []
@@ -57,7 +61,9 @@ def findRelativeEntities(queryid: str):
         iResult = mycursor.fetchall()
         result.append({'id': queryid, 'content': iResult[0][0], 'type': '题款', 'link': 0})
 
-        mycursor.execute("SELECT Paintings.pid, name FROM Inscriptions, paintings WHERE Inscriptions.iid = %s and paintings.pid = Inscriptions.pid;", (queryid,))
+        mycursor.execute(
+            "SELECT Paintings.pid, name FROM Inscriptions, paintings WHERE Inscriptions.iid = %s and paintings.pid = Inscriptions.pid;",
+            (queryid,))
         pResult = mycursor.fetchall()
         for pid in pResult:
             result.append({'id': pid[0], 'content': pid[1], 'type': '绘画', 'link': queryid})
@@ -72,6 +78,7 @@ def truncate_string(s, n):  # Truncates string s to n characters with an ellipsi
     else:
         return s
 
+
 def convert_to_nodes_and_links(data):
     nodes = []
     links = []
@@ -83,7 +90,8 @@ def convert_to_nodes_and_links(data):
         node_content = item["content"]
         # Add node to nodes list
         if node_id not in node_names:
-            nodes.append({"name": node_id, "symbolSize": 20, "value": truncate_string(node_content, 12), "category": node_type})
+            nodes.append(
+                {"name": node_id, "symbolSize": 20, "value": truncate_string(node_content, 12), "category": node_type})
             node_names.add(node_id)
         else:
             for node in nodes:
@@ -96,6 +104,59 @@ def convert_to_nodes_and_links(data):
     return nodes, links
 
 
+def findImgAndInfo(queryid: str):
+    relatedView = None
+    relatedInfo = ""
+    if queryid.startswith('p') or queryid.startswith('P'):
+        try:
+            qimage = QImage(DataSet_Dir + 'PID\\' + queryid.upper() + '.jpg')
+            relatedView = QPixmap.fromImage(qimage)
+        except Exception as r:
+            print('读取数据库绘画图片时出错：', r)
+            relatedView = '画作'
+        mycursor.execute("SELECT * FROM paintings WHERE pid = %s;", (queryid,))
+        pResult = mycursor.fetchall()
+        label = ["编号", "作品名", "作者", "年代", "材料", "形制", "颜色", "尺寸（纵）", "尺寸（横）"]
+        num_columns = 2  # 每行的列数
+        num_rows = (len(label) + num_columns - 1) // num_columns  # 计算行数
+
+        table_html = "<table>"
+        for i in range(num_rows):
+            table_html += "<tr>"
+            for j in range(num_columns):
+                index = i * num_columns + j
+                if index < len(label):
+                    table_html += "<td>{}：{}</td>".format(label[index], pResult[0][index])
+            table_html += "</tr>"
+        table_html += "</table>"
+
+        relatedInfo = table_html
+
+    elif queryid.startswith('y') or queryid.startswith('Y'):
+        try:
+            qimage = QImage(DataSet_Dir + 'YID\\' + queryid.upper() + '.png')
+            relatedView = QPixmap.fromImage(qimage)
+        except Exception as r:
+            print('读取数据库印鉴图片时出错：', r)
+            relatedView = '印鉴'
+        mycursor.execute("SELECT * FROM seals WHERE sid = %s;", (queryid,))
+        sResult = mycursor.fetchall()
+        label = ["编号", "印章名", "所有者", "类型"]
+        for i, infoItem in enumerate(sResult[0]):
+            relatedInfo = relatedInfo + label[i] + '：\t' + infoItem + '\n'
+
+    elif queryid.startswith('t') or queryid.startswith('T'):
+        relatedView = '题款'
+        mycursor.execute("SELECT * FROM inscriptions WHERE iid = %s;", (queryid,))
+        iResult = mycursor.fetchall()
+        label = ["编号", "印章名", "所有者", "类型"]
+        for i, infoItem in enumerate(iResult[0]):
+            relatedInfo = relatedInfo + label[i] + '：\t' + infoItem + '\n'
+
+    print(relatedInfo)
+    return relatedView, relatedInfo
+
+
 if __name__ == "__main__":
     result = findRelativeEntities('y12')
     print(result)
@@ -106,4 +167,3 @@ if __name__ == "__main__":
     view = initPyQtGraph(nodes, links, [{"name": "绘画"}, {"name": "题款"}, {"name": "印鉴"}])
     view.show()
     app.exec_()
-

@@ -23,7 +23,10 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
         self.imgPixmap = QPixmap('icon/pls_select_paintings.png')  # 载入图片
         self.scaledImg = self.imgPixmap.scaledToWidth(parent.width())  # 初始化缩放图
         # self.scaledImg = self.imgPixmap
-        self.singleOffset = QPoint(0, 0)  # 初始化偏移值
+        # 计算图片在空间中居中显示的偏移值
+        x_offset = (parent.width() - self.scaledImg.width()) // 2
+        y_offset = (parent.height() - self.scaledImg.height()) // 2
+        self.singleOffset = QPoint(x_offset, y_offset)  # 初始化偏移值
 
         self.isLeftPressed = bool(False)  # 图片被点住(鼠标左键)标志位
         self.isImgLabelArea = bool(True)  # 鼠标进入label图片显示区域
@@ -140,8 +143,18 @@ class scalableImageLabel(QtWidgets.QLabel):  # 不可用QMainWindow,因为QLabel
 
     def setPixmap(self, a0: QtGui.QPixmap) -> None:
         self.imgPixmap = a0
-        self.scaledImg = self.imgPixmap.scaledToWidth(self.width())  # 初始化缩放图
-        self.singleOffset = QPoint(0, 0)  # 初始化偏移值
+        if self.imgPixmap.width() <= self.width()/2 and self.imgPixmap.height() <= self.height()/2:
+            self.scaledImg = self.imgPixmap.scaledToWidth(self.imgPixmap.width()*2)  # 使用原始图片
+        elif self.imgPixmap.width() <= self.width() and self.imgPixmap.height() <= self.height():
+            self.scaledImg = self.imgPixmap  # 使用原始图片
+        else:
+            self.scaledImg = self.imgPixmap.scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)  # 缩放图片
+
+        # 计算图片在空间中居中显示的偏移值
+        x_offset = (self.width() - self.scaledImg.width()) // 2
+        y_offset = (self.height() - self.scaledImg.height()) // 2
+        self.singleOffset = QPoint(x_offset, y_offset)
+
         self.repaint()
 
     # =============================================================================

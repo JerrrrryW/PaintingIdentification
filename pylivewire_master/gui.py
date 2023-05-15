@@ -78,7 +78,7 @@ class ImageWin(QtWidgets.QDialog):
             # Save and return cropped image
             # filepath, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save image audio to', '',
             #                                                     '*.jpg\n*.bmp\n*.png')
-            self.cropped_image.save('./output/freeCut_result.jpg', quality=100)
+            self.cropped_image.save('./segmented_output/freeCut_result.jpg', quality=100)
         self.close()
     
     def mousePressEvent(self, event):            
